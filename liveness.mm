@@ -110,7 +110,67 @@
 <node CREATED="1343484134274" ID="ID_276452024" MODIFIED="1343484197209" TEXT="htis should be acceptable"/>
 </node>
 <node CREATED="1343484200080" ID="ID_1239380456" MODIFIED="1343484210986" TEXT="when we cannot abide by the sideeffecs">
-<node CREATED="1343484210989" ID="ID_27461042" MODIFIED="1343484240464" TEXT="we may need to strucutre a concurrent object so that only one thread can execute the code path following an open call"/>
+<node CREATED="1343484210989" ID="ID_27461042" MODIFIED="1343484240464" TEXT="we may need to strucutre a concurrent object so that only one thread can execute the code path following an open call">
+<node CREATED="1343806257298" ID="ID_1212856811" MODIFIED="1343806260903" TEXT="e.g.">
+<node CREATED="1343806260906" ID="ID_183761024" MODIFIED="1343806278246" TEXT="when shutting down a service">
+<node CREATED="1343806278249" ID="ID_1648647046" MODIFIED="1343806302601" TEXT="first: wait for in-progress operations to complete"/>
+<node CREATED="1343806303210" ID="ID_375734127" MODIFIED="1343806346587" TEXT="then release resources used by the service"/>
+<node CREATED="1343806347028" ID="ID_1948349008" MODIFIED="1343806367698" TEXT="so hold the lock long enough to update the service state to &quot;shutting down&quot;">
+<node CREATED="1343806379526" ID="ID_356763564" MODIFIED="1343806390515" TEXT="so that other threads see this state">
+<node CREATED="1343806390517" ID="ID_981546989" MODIFIED="1343806556865" TEXT="including the thread that is shutting down the service"/>
+</node>
+<node CREATED="1343806560958" ID="ID_222861550" MODIFIED="1343806597355" TEXT="relies on the construction of a protocol so that other threads do not try to start if the state is &quot; shutting down &quot;"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1343806644522" ID="ID_887370113" MODIFIED="1343806660479" TEXT="resource deadlock">
+<node CREATED="1343806660482" ID="ID_1516969000" MODIFIED="1343806663566" TEXT="definition">
+<node CREATED="1343806663568" ID="ID_617790997" MODIFIED="1343806681965" TEXT="threads can deadlock waiting on resources as well as lockks"/>
+<node CREATED="1343806682355" ID="ID_1565565847" MODIFIED="1343806728986" TEXT="also includes thread starvation deadlock">
+<node CREATED="1343806728988" ID="ID_359836311" MODIFIED="1343806732520" TEXT="definition">
+<node CREATED="1343806732522" ID="ID_21628134" MODIFIED="1343806756337" TEXT="e.g. ">
+<node CREATED="1343806756339" ID="ID_485209852" MODIFIED="1343806781377" TEXT="where a tasks that submits a task and waits for its result executes in a single-threaded Executor."/>
+<node CREATED="1343806782244" ID="ID_1617120831" MODIFIED="1343806807331" TEXT="in which case it will wait forever"/>
+</node>
+<node CREATED="1343806808656" ID="ID_1478153853" MODIFIED="1343806843059" TEXT="tasks that wiat for other tasks are the primary source for thread starvation deadlock"/>
+<node CREATED="1343806906625" ID="ID_1624869428" MODIFIED="1343806918818" TEXT="bounded bools and interdependent tasks do not mix well"/>
+</node>
+</node>
+</node>
+<node CREATED="1343806996194" ID="ID_1581724919" MODIFIED="1343807000038" TEXT="considerations">
+<node CREATED="1343807000040" ID="ID_471324585" MODIFIED="1343807028819" TEXT="a program  that never aquires more than one lock at a time cannot experiience lock ordering deadlock"/>
+<node CREATED="1343807029250" ID="ID_1142245408" MODIFIED="1343807049405" TEXT="if you aquire multiple locks , the lock ordering must be part of your design"/>
+<node CREATED="1343807088853" ID="ID_644281281" MODIFIED="1343807102397" TEXT="document the lock ordering protocol"/>
+<node CREATED="1343807102933" ID="ID_328065371" MODIFIED="1343807117472" TEXT="minimise lock interactions"/>
+</node>
+<node CREATED="1343807124742" ID="ID_263454902" MODIFIED="1343807128454" TEXT="audit">
+<node CREATED="1343807130104" ID="ID_1132168822" MODIFIED="1343807140780" TEXT="audit your code for deadlock freedom ">
+<node CREATED="1343807140783" ID="ID_622560631" MODIFIED="1343807168417" TEXT="first identify where multiple locks could be acquired ">
+<node CREATED="1343807168419" ID="ID_1897442221" MODIFIED="1343807175028" TEXT="try to make this a small set"/>
+</node>
+<node CREATED="1343807175995" ID="ID_326313894" MODIFIED="1343807228198" TEXT="second: perform a global analysis of all such instances to ensure that lock ordering is consistent across your entire program"/>
+</node>
+<node CREATED="1343807255852" ID="ID_668860675" MODIFIED="1343807273965" TEXT="techniques">
+<node CREATED="1343807273967" ID="ID_667815624" MODIFIED="1343807276082" TEXT="code review"/>
+<node CREATED="1343807276422" ID="ID_397904734" MODIFIED="1343807289669" TEXT="byte code or source code  static analysis programs"/>
+<node CREATED="1343807299314" ID="ID_1979421821" MODIFIED="1343807306475" TEXT="use open calls to make this easier"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1343807354596" ID="ID_642854855" MODIFIED="1343807357187" TEXT="tools">
+<node CREATED="1343807358492" ID="ID_629431122" MODIFIED="1343807372187" TEXT="explict Lock classes">
+<node CREATED="1343807372189" ID="ID_1058128064" MODIFIED="1343807377713" TEXT="tryLock ">
+<node CREATED="1343807377715" ID="ID_694302107" MODIFIED="1343807390187" TEXT="definition">
+<node CREATED="1343807390583" ID="ID_58748461" MODIFIED="1343807427895" TEXT="lets you specify a timeout after which tryLock returns a failure"/>
+</node>
+<node CREATED="1343807469658" ID="ID_1816158789" MODIFIED="1343807473404" TEXT="considerations">
+<node CREATED="1343807434686" ID="ID_1388095658" MODIFIED="1343807468521" TEXT="by using a timeout longer than you expect to take you can regain control if there is a problem aquiring the lock"/>
+<node CREATED="1343807479369" ID="ID_927745782" MODIFIED="1343807489508" TEXT="when a timed lock fails you dont always know why"/>
 </node>
 </node>
 </node>
