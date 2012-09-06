@@ -158,11 +158,6 @@
 <node CREATED="1343807273967" ID="ID_667815624" MODIFIED="1343807276082" TEXT="code review"/>
 <node CREATED="1343807276422" ID="ID_397904734" MODIFIED="1343807289669" TEXT="byte code or source code  static analysis programs"/>
 <node CREATED="1343807299314" ID="ID_1979421821" MODIFIED="1343807306475" TEXT="use open calls to make this easier"/>
-</node>
-</node>
-</node>
-</node>
-<node CREATED="1343807354596" ID="ID_642854855" MODIFIED="1343807357187" TEXT="tools">
 <node CREATED="1343807358492" ID="ID_629431122" MODIFIED="1343807372187" TEXT="explict Lock classes">
 <node CREATED="1343807372189" ID="ID_1058128064" MODIFIED="1343807377713" TEXT="tryLock ">
 <node CREATED="1343807377715" ID="ID_694302107" MODIFIED="1343807390187" TEXT="definition">
@@ -171,6 +166,160 @@
 <node CREATED="1343807469658" ID="ID_1816158789" MODIFIED="1343807473404" TEXT="considerations">
 <node CREATED="1343807434686" ID="ID_1388095658" MODIFIED="1343807468521" TEXT="by using a timeout longer than you expect to take you can regain control if there is a problem aquiring the lock"/>
 <node CREATED="1343807479369" ID="ID_927745782" MODIFIED="1343807489508" TEXT="when a timed lock fails you dont always know why"/>
+<node CREATED="1344090320251" ID="ID_1377190031" MODIFIED="1344090343103" TEXT="this works only when two locks are aquired together in the same method">
+<node CREATED="1344090343105" ID="ID_610492558" MODIFIED="1344090367452" TEXT="if multiple locks are aquired due to nesting of method calls you cannot just release the outer lock"/>
+<node CREATED="1344090368686" ID="ID_1548677132" MODIFIED="1344090374073" TEXT="even if you know you hold it"/>
+</node>
+</node>
+<node CREATED="1344090245147" ID="ID_1557442920" MODIFIED="1344090249415" TEXT="solution ">
+<node CREATED="1344090249418" ID="ID_529836823" MODIFIED="1344090263313" TEXT="when a lock aquisition times out">
+<node CREATED="1344090263315" ID="ID_16113259" MODIFIED="1344090273582" TEXT="release the locks"/>
+<node CREATED="1344090283230" ID="ID_791056417" MODIFIED="1344090290725" TEXT="back off and wait a while"/>
+<node CREATED="1344090291079" ID="ID_609011365" MODIFIED="1344090299033" TEXT="try again"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1344090387477" ID="ID_1319321435" MODIFIED="1344090402339" TEXT="deadlock analysis ">
+<node CREATED="1344090402341" ID="ID_1575145657" MODIFIED="1344090404241" TEXT="via">
+<node CREATED="1344090404243" ID="ID_902528431" MODIFIED="1344090414252" TEXT="thread dumps">
+<node CREATED="1344090414254" ID="ID_756535830" MODIFIED="1344090417048" TEXT="definition">
+<node CREATED="1344090455968" ID="ID_1072678132" MODIFIED="1344090465542" TEXT="includes">
+<node CREATED="1344090417051" ID="ID_83274349" MODIFIED="1344090474863" TEXT=" a stack trace for each running thread"/>
+<node CREATED="1344090475497" ID="ID_762132592" MODIFIED="1344090505118" TEXT="locking information ">
+<node CREATED="1344090505120" ID="ID_665913866" MODIFIED="1344090507922" TEXT="such as">
+<node CREATED="1344090507924" ID="ID_102177435" MODIFIED="1344090514598" TEXT="which locks are held by each thread"/>
+<node CREATED="1344090514818" ID="ID_697249792" MODIFIED="1344090536472" TEXT="in which stack frame they were acquired"/>
+<node CREATED="1344090536943" ID="ID_802702433" MODIFIED="1344090546247" TEXT="which lock a blocked thread is waiting to acquire"/>
+</node>
+</node>
+<node CREATED="1344090573168" ID="ID_426745028" MODIFIED="1344090578736" TEXT="deadlock information">
+<node CREATED="1344090578738" ID="ID_51646142" MODIFIED="1344090622903" TEXT="when generating a thread lock the jvm traverses the lock waiting graph looking for deadlock"/>
+<node CREATED="1344090623173" ID="ID_412632317" MODIFIED="1344090646963" TEXT="if it finds one it provides ">
+<node CREATED="1344090648084" ID="ID_1446630401" MODIFIED="1344090654083" TEXT="which threads are involved"/>
+<node CREATED="1344090659898" ID="ID_1611896378" MODIFIED="1344090666845" TEXT="which locks are involved"/>
+<node CREATED="1344090667474" ID="ID_695759351" MODIFIED="1344090679519" TEXT="where in the program the aquistions take place"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1344090699389" ID="ID_1539637099" MODIFIED="1344090706124" TEXT="trigger via">
+<node CREATED="1344090706126" ID="ID_458507700" MODIFIED="1344090716310" TEXT="SIGQUIT (kill -3)"/>
+<node CREATED="1344090716888" ID="ID_259775666" MODIFIED="1344090728794" TEXT="Ctrl + \ in unix"/>
+<node CREATED="1344090729180" ID="ID_1898301598" MODIFIED="1344090737606" TEXT="Ctrl + break in windows"/>
+</node>
+<node CREATED="1344090755355" ID="ID_48693950" MODIFIED="1344090759520" TEXT="considerations ">
+<node CREATED="1344090759523" ID="ID_580093178" MODIFIED="1344090771377" TEXT="explicit lock classes">
+<node CREATED="1344090771379" ID="ID_403585547" MODIFIED="1344090802887" TEXT="java 5 has no support for lock information from thread dump explicit locks do not show up"/>
+<node CREATED="1344090803995" ID="ID_400328253" MODIFIED="1344090828425" TEXT="java 6 does include thread dump support and deadlock detection with explicit locks">
+<node CREATED="1344090828427" ID="ID_949222099" MODIFIED="1344090842379" TEXT="the information on where the locks are aquired is less precise"/>
+</node>
+<node CREATED="1344090885870" ID="ID_146749579" MODIFIED="1344090906192" TEXT="intrinsic locks are assoicated with the stack frame in which they were aquired"/>
+<node CREATED="1344090906373" ID="ID_1680973516" MODIFIED="1344090916854" TEXT="explicit locks are associated only with the aquiring thread"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1344091306783" ID="ID_909641366" MODIFIED="1344091315069" TEXT="stavation">
+<node CREATED="1344091315071" ID="ID_1077332761" MODIFIED="1344091318517" TEXT="definition">
+<node CREATED="1344091318519" ID="ID_789788800" MODIFIED="1344091352077" TEXT="when a thread is permanently denide acces to resources it needs in order to make progress"/>
+<node CREATED="1344091352649" ID="ID_361756048" MODIFIED="1344091370550" TEXT="the most commonly starved resource is CPU cycles"/>
+</node>
+<node CREATED="1344091372075" ID="ID_1624719168" MODIFIED="1344091416751" TEXT="can be caused by">
+<node CREATED="1344091375821" ID="ID_1800815414" MODIFIED="1344091427517" TEXT=" in appropriate use of thread priorities">
+<node CREATED="1344091523128" ID="ID_801619583" MODIFIED="1344091528264" TEXT="thread priorites">
+<node CREATED="1344091528267" ID="ID_1958628583" MODIFIED="1344091537486" TEXT="api">
+<node CREATED="1344091537488" ID="ID_1061038352" MODIFIED="1344091555012" TEXT="merely contains sheduling hnts">
+<node CREATED="1344091718115" ID="ID_1042421736" MODIFIED="1344091725385" TEXT="may do nothing "/>
+<node CREATED="1344091725890" ID="ID_357679533" MODIFIED="1344091747377" TEXT="or may cause always cause one thread to be scheduled before another">
+<node CREATED="1344091765306" ID="ID_540040744" MODIFIED="1344091772413" TEXT="starvation"/>
+</node>
+<node CREATED="1344091774289" ID="ID_1044987513" MODIFIED="1344091795890" TEXT="generally wise to avoid tweaking scheduling priorites">
+<node CREATED="1344091797330" ID="ID_673727050" MODIFIED="1344091814268" TEXT="as it makes the behaviour of your application platform specific"/>
+</node>
+</node>
+<node CREATED="1344091555632" ID="ID_598604264" MODIFIED="1344091585874" TEXT="has 10 levels that the jvm can map to operating system scheduling priorities">
+<node CREATED="1344091594580" ID="ID_1490852135" MODIFIED="1344091613300" TEXT="platform specific"/>
+<node CREATED="1344091613801" ID="ID_1474447784" MODIFIED="1344091631617" TEXT="some OS&apos;s have fewer than 10 levels ">
+<node CREATED="1344091631619" ID="ID_1679357862" MODIFIED="1344091653423" TEXT="hence some api levels map to the sameOS levels"/>
+</node>
+</node>
+<node CREATED="1344091689494" ID="ID_959730202" MODIFIED="1344091714768" TEXT="generally most threads have Thread,NORM_PRIORITY">
+<node CREATED="1344091876558" ID="ID_275587715" MODIFIED="1344091882545" TEXT="this is usually adequate"/>
+</node>
+<node CREATED="1344091829862" ID="ID_1993048181" MODIFIED="1344091854682" TEXT="you can often spot a program that is trying to fix priority tweaking ">
+<node CREATED="1344091854684" ID="ID_823885374" MODIFIED="1344091857757" TEXT="it contains">
+<node CREATED="1344091857759" ID="ID_1288365405" MODIFIED="1344091861401" TEXT="Thread,yield"/>
+<node CREATED="1344091861630" ID="ID_51143881" MODIFIED="1344091868095" TEXT="Thread.sleep"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1344091435931" FOLDED="true" ID="ID_1039442539" MODIFIED="1344091517155" TEXT="executing non terminating code while holding locks">
+<node CREATED="1344091443878" ID="ID_42047741" MODIFIED="1344091449975" TEXT="inifintate loops"/>
+<node CREATED="1344091450821" ID="ID_1143606205" MODIFIED="1344091465903" TEXT="infinite waits"/>
+</node>
+</node>
+</node>
+<node CREATED="1344091892762" ID="ID_1483361120" MODIFIED="1344091921895" TEXT="poor responsiveness">
+<node CREATED="1344091922958" ID="ID_1397025248" MODIFIED="1344092064580" TEXT="causes">
+<node CREATED="1344091928038" ID="ID_1866016217" MODIFIED="1344091994174" TEXT="CPU intensive background task can still suffer from poor responsiveness if they have to compete for cpu cycles with the event thread">
+<node CREATED="1344091994954" ID="ID_80348823" MODIFIED="1344092011451" TEXT="this is one case where altering priorities makes sense">
+<node CREATED="1344092011453" ID="ID_109063949" MODIFIED="1344092035572" TEXT="when cpu intensive background tasks effects responsiveness"/>
+</node>
+</node>
+<node CREATED="1344092069989" ID="ID_531713497" MODIFIED="1344092077872" TEXT="poor lock management">
+<node CREATED="1344092077874" ID="ID_1568739317" MODIFIED="1344092124520" TEXT="if a thread hold a lock for a long time or longer than necessary while working"/>
+<node CREATED="1344092125094" ID="ID_1245335122" MODIFIED="1344092137167" TEXT="other threads that need that lock may need to wait a long time"/>
+</node>
+</node>
+</node>
+<node CREATED="1344092140598" ID="ID_1206629670" MODIFIED="1344092144731" TEXT="Livelock">
+<node CREATED="1344092146145" ID="ID_705709538" MODIFIED="1344092153725" TEXT="is">
+<node CREATED="1344092153727" ID="ID_1340969700" MODIFIED="1344092184833" TEXT="a form of liveness failure in which a thread while not blocked cannot make progress because it keeps retrying an operation that will always fail"/>
+</node>
+<node CREATED="1344092198304" ID="ID_895876629" MODIFIED="1344092212681" TEXT="causes">
+<node CREATED="1344092212684" ID="ID_897798034" MODIFIED="1344092226807" TEXT="transactional message applications">
+<node CREATED="1344092401575" ID="ID_259844321" MODIFIED="1344092420903" TEXT="overeager recovery code that treats and unrecoverable error as a recovverable one">
+<node CREATED="1344092420905" ID="ID_416037645" MODIFIED="1344092426625" TEXT="e.g.">
+<node CREATED="1344092226809" ID="ID_862856677" MODIFIED="1344092310073" TEXT="where a framework rolls back a message and puts it to the end of a queue">
+<node CREATED="1344092310627" ID="ID_460725221" MODIFIED="1344092360965" TEXT="if there is a bug for a particular type of message ,this will cause the message to continually be placed at the head of the queue and cause starve other messages from being processed"/>
+<node CREATED="1344092372006" ID="ID_1196910141" MODIFIED="1344092400397" TEXT="this is called the poisone message problem"/>
+</node>
+</node>
+</node>
+<node CREATED="1344092437775" ID="ID_388846911" MODIFIED="1344092454694" TEXT="multiple co-operating threads">
+<node CREATED="1344092454697" ID="ID_417043377" MODIFIED="1344092487982" TEXT="where they change state in response to each other in a way such that they can never make progress">
+<node CREATED="1344092487991" ID="ID_13937574" MODIFIED="1344092492314" TEXT="e.g. ">
+<node CREATED="1344092492316" ID="ID_223643015" MODIFIED="1344092517318" TEXT="like two people that bump into each other in a corridor, and then both move to the left to avoid each other"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1344092526203" ID="ID_766309232" MODIFIED="1344092532340" TEXT="solution">
+<node CREATED="1344092532342" ID="ID_767111968" MODIFIED="1344092543299" TEXT="multple co-operating thread problem">
+<node CREATED="1344092543301" ID="ID_1106471022" MODIFIED="1344092556632" TEXT="introduce some randomness into the retry mechanism"/>
+<node CREATED="1344092569297" ID="ID_812488756" MODIFIED="1344092586584" TEXT="retrying with random waits and backoffs">
+<node CREATED="1344092589202" ID="ID_333678028" MODIFIED="1344092620540" TEXT="the ethernet protocol includes an exponential backup after repeated collisions"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1343807354596" ID="ID_642854855" MODIFIED="1343807357187" TEXT="tools">
+<node CREATED="1344092648107" ID="ID_1394236466" MODIFIED="1344092678935" TEXT="avoiding lock ordering deadlock starts at desing time">
+<node CREATED="1344092678937" ID="ID_1474198340" MODIFIED="1344092698316" TEXT="ensure that when threads aquire multiple locks they do so in a consistent order"/>
+<node CREATED="1344092699033" ID="ID_1416969399" MODIFIED="1344092715826" TEXT="this is best ensured by using open calls throughout your program">
+<node CREATED="1344092715828" ID="ID_189722811" MODIFIED="1344092717934" TEXT="which">
+<node CREATED="1344092717936" ID="ID_1691155228" MODIFIED="1344092738548" TEXT="greatly reduces the number of places where  multiple locks are held at once"/>
+<node CREATED="1344092738844" ID="ID_930830093" MODIFIED="1344092747943" TEXT="makes it more obvious where those places are"/>
+<node CREATED="1344092748318" ID="ID_862266999" MODIFIED="1344092748318" TEXT=""/>
 </node>
 </node>
 </node>
