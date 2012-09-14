@@ -1,6 +1,6 @@
 <map version="0.9.0">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1346797816795" ID="ID_89160207" MODIFIED="1346797874194" TEXT="Performance and Scalability">
+<node CREATED="1346797816795" ID="ID_89160207" MODIFIED="1347654692717" TEXT="Performance and Scalability">
 <node CREATED="1346797920436" FOLDED="true" ID="ID_722152838" MODIFIED="1346967703139" POSITION="right" TEXT="improved ">
 <node CREATED="1346798237918" ID="ID_789127106" MODIFIED="1346798244152" TEXT="performance">
 <node CREATED="1346798249648" ID="ID_1416891435" MODIFIED="1346798251442" TEXT="via">
@@ -178,7 +178,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1346962538277" FOLDED="true" ID="ID_121757486" MODIFIED="1346967694462" POSITION="right" TEXT="thread costs">
+<node CREATED="1346962538277" FOLDED="true" ID="ID_121757486" MODIFIED="1347655809171" POSITION="right" TEXT="thread costs">
 <node CREATED="1346962735328" ID="ID_1677453296" MODIFIED="1346962745897" TEXT="are only worthwhile ">
 <node CREATED="1346962746957" ID="ID_118706358" MODIFIED="1346962989515" TEXT="when the performance benefits outweigh the costs"/>
 </node>
@@ -361,6 +361,176 @@
 </node>
 </node>
 </node>
-<node CREATED="1346967706630" ID="ID_1257609529" MODIFIED="1346967926969" POSITION="right" TEXT="reducing lock contention"/>
+<node CREATED="1346967706630" FOLDED="true" ID="ID_1257609529" MODIFIED="1347655805940" POSITION="right" TEXT="reducing lock contention">
+<node CREATED="1347222768246" ID="ID_668056117" MODIFIED="1347222768246" TEXT=""/>
+<node CREATED="1347222864667" ID="ID_1510555946" MODIFIED="1347222872009" TEXT="lock contention">
+<node CREATED="1347222872012" ID="ID_1363252986" MODIFIED="1347222873707" TEXT="causes">
+<node CREATED="1347222873709" ID="ID_1408054448" MODIFIED="1347222880385" TEXT="scalability">
+<node CREATED="1347222930418" ID="ID_306772472" MODIFIED="1347222946516" TEXT="the principal thread to scalability in concurrent applications is the exclusive resource lock"/>
+</node>
+<node CREATED="1347222880613" ID="ID_1077657685" MODIFIED="1347222929483" TEXT="performance"/>
+</node>
+<node CREATED="1347222958744" ID="ID_636152498" MODIFIED="1347222967532" TEXT="influences">
+<node CREATED="1347222999981" ID="ID_531557308" MODIFIED="1347223002257" TEXT="factors">
+<node CREATED="1347222967534" ID="ID_120934338" MODIFIED="1347222977488" TEXT="how often lock is requested"/>
+<node CREATED="1347222978411" ID="ID_1361502348" MODIFIED="1347222987133" TEXT="how long the lock is held"/>
+</node>
+<node CREATED="1347223009726" ID="ID_1089468914" MODIFIED="1347223036010" TEXT="if the product of the factors is small">
+<node CREATED="1347223036012" ID="ID_250461572" MODIFIED="1347223055409" TEXT="most attempts to aquire are uncontended"/>
+<node CREATED="1347223055998" ID="ID_111673448" MODIFIED="1347223082844" TEXT="otherwise ">
+<node CREATED="1347223082846" ID="ID_1318541581" MODIFIED="1347223092603" TEXT="threads will block waiting for it"/>
+<node CREATED="1347223093177" ID="ID_677118724" MODIFIED="1347223105095" TEXT="processors may even sit edle while there is plenty of work to do"/>
+</node>
+</node>
+</node>
+<node CREATED="1347223110801" ID="ID_1483652915" MODIFIED="1347223134381" TEXT="soluction">
+<node CREATED="1347223123773" ID="ID_1513713735" MODIFIED="1347223181532" TEXT="replace exclusive locks with co-ordination mechanisms">
+<node CREATED="1347655559472" ID="ID_1618542270" MODIFIED="1347655562886" TEXT="such as">
+<node CREATED="1347655562888" ID="ID_695642307" MODIFIED="1347655572173" TEXT="concurrent collections"/>
+<node CREATED="1347655572525" ID="ID_523753887" MODIFIED="1347655582266" TEXT="read-write locks">
+<node CREATED="1347655620858" ID="ID_1339769715" MODIFIED="1347655653002" TEXT="enforces a multiple-reader single-writer "/>
+</node>
+<node CREATED="1347655582772" ID="ID_386756388" MODIFIED="1347655587321" TEXT="immutable objects">
+<node CREATED="1347655659675" ID="ID_754551754" MODIFIED="1347655667237" TEXT="best for readonly structures"/>
+</node>
+<node CREATED="1347655587631" ID="ID_1782188942" MODIFIED="1347655609809" TEXT="atomic variables">
+<node CREATED="1347655686907" ID="ID_634708321" MODIFIED="1347655718561" TEXT="reduce the cost of hot fields"/>
+<node CREATED="1347655719057" ID="ID_198484900" MODIFIED="1347655722241" TEXT="best if">
+<node CREATED="1347655722243" ID="ID_677949443" MODIFIED="1347655756351" TEXT="your class has a small number of hot fields that do not participate in invariants with other variables"/>
+</node>
+</node>
+<node CREATED="1347655769299" ID="ID_78617338" MODIFIED="1347655783026" TEXT="changing your algorithim to have fewer hot fields"/>
+</node>
+</node>
+<node CREATED="1347223134793" ID="ID_1419655995" MODIFIED="1347654655998" TEXT="reduce">
+<node CREATED="1347223138975" ID="ID_1087390927" MODIFIED="1347654170343" TEXT="the duration that locks are held">
+<node CREATED="1347223204004" ID="ID_1958370173" MODIFIED="1347223206993" TEXT="move">
+<node CREATED="1347223206995" ID="ID_188215344" MODIFIED="1347223224243" TEXT="code that doesnt require locks out of synchornized blocks">
+<node CREATED="1347223226744" ID="ID_620597506" MODIFIED="1347223238050" TEXT="esp ">
+<node CREATED="1347223238052" ID="ID_70826827" MODIFIED="1347223247236" TEXT="expensive operatiosn"/>
+<node CREATED="1347223247746" ID="ID_1414417772" MODIFIED="1347223257198" TEXT="potential blocking operations such as IO"/>
+</node>
+<node CREATED="1347223784110" ID="ID_1613500370" MODIFIED="1347223792516" TEXT="considerations">
+<node CREATED="1347223792518" ID="ID_1211864687" MODIFIED="1347223811252" TEXT="a synchronised block can be too small">
+<node CREATED="1347223812565" ID="ID_814587509" MODIFIED="1347223844472" TEXT="operations that need to be atomic must be contained in a single synchronised block"/>
+<node CREATED="1347223865862" ID="ID_758361769" MODIFIED="1347223883048" TEXT="because the cost of synchronising is non zero">
+<node CREATED="1347223883051" ID="ID_188565900" MODIFIED="1347223964729" TEXT="breaking one synchronised blocks into many eventually becomes counter productive"/>
+<node CREATED="1347223980461" ID="ID_208170649" MODIFIED="1347224015551" TEXT="denormalising should only be considered once you have normalised fully and performance is still below par"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1347223584591" ID="ID_605907671" MODIFIED="1347223590987" TEXT="delegate thread safety">
+<node CREATED="1347223590989" ID="ID_233254688" MODIFIED="1347223602849" TEXT="via">
+<node CREATED="1347223602851" ID="ID_1808038283" MODIFIED="1347223608137" TEXT="a thread safe object"/>
+</node>
+<node CREATED="1347223618431" ID="ID_467276096" MODIFIED="1347223622513" TEXT="advantages">
+<node CREATED="1347223622515" ID="ID_428930663" MODIFIED="1347223636202" TEXT="eliminates need for ">
+<node CREATED="1347223636204" ID="ID_1407508745" MODIFIED="1347223645581" TEXT="explicit synchronisation"/>
+</node>
+<node CREATED="1347223646524" ID="ID_882337417" MODIFIED="1347654626877" TEXT="reduces lock scope to the duration of the thread safe object"/>
+<node CREATED="1347223673424" ID="ID_1686162287" MODIFIED="1347223693913" TEXT="reduces ris that a future maintainer will undermine thread safety">
+<node CREATED="1347223698658" ID="ID_1789825978" MODIFIED="1347223758349" TEXT="by forgetiing to aquire the appropriate lock"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1347223148719" ID="ID_1178402722" MODIFIED="1347223155214" TEXT="frequency locks are requested"/>
+<node CREATED="1347654664084" ID="ID_1232818992" MODIFIED="1347654689171" TEXT="lock granularity">
+<node CREATED="1347654713065" ID="ID_1185526705" MODIFIED="1347654722115" TEXT="lock splitting">
+<node CREATED="1347654758722" ID="ID_1243487106" MODIFIED="1347654771721" TEXT="if a lock guards more than one independent state">
+<node CREATED="1347654771723" ID="ID_724399786" MODIFIED="1347654832149" TEXT="you may be able to improve scalability by splitting it into multiple locks that guard different variables"/>
+<node CREATED="1347654832396" ID="ID_61893398" MODIFIED="1347654842815" TEXT="this results in each lock being requested less often"/>
+</node>
+<node CREATED="1347654927231" ID="ID_485227235" MODIFIED="1347654936637" TEXT="improves scalability when">
+<node CREATED="1347654936639" ID="ID_1285631756" MODIFIED="1347654950345" TEXT="lock has moderate but not heavy contention"/>
+</node>
+</node>
+<node CREATED="1347654722626" ID="ID_1226966924" MODIFIED="1347654757086" TEXT="lock striping">
+<node CREATED="1347655070054" ID="ID_1955163033" MODIFIED="1347655087112" TEXT="is an extension of lock splitting"/>
+<node CREATED="1347655087625" ID="ID_236250865" MODIFIED="1347655109843" TEXT="used on a set of independent objects "/>
+<node CREATED="1347655129206" ID="ID_602397319" MODIFIED="1347655138689" TEXT="for example ">
+<node CREATED="1347655138691" ID="ID_1094633456" MODIFIED="1347655171810" TEXT="concurrenthashmap uses an array of 16 locks each of which guards 1/16 of the hashbuckets"/>
+</node>
+<node CREATED="1347655175434" ID="ID_1489394040" MODIFIED="1347655188015" TEXT="have disadvantages of">
+<node CREATED="1347655188017" ID="ID_344798794" MODIFIED="1347655245254" TEXT="locking the whole set of objects exclusivly is more difficult and expensive than with a single lock"/>
+</node>
+</node>
+</node>
+<node CREATED="1347655274724" ID="ID_5487322" MODIFIED="1347655290551" TEXT="interaction with &apos;hot&apos; fields">
+<node CREATED="1347655405028" ID="ID_1137221707" MODIFIED="1347655442194" TEXT="common operations such as caching frequently computed values can introduce hot fields that limit scalability"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1347655812034" ID="ID_775881402" MODIFIED="1347655829249" POSITION="right" TEXT="monitoring CPU utilisation">
+<node CREATED="1347655829251" ID="ID_1564965218" MODIFIED="1347655833799" TEXT="goal">
+<node CREATED="1347655833802" ID="ID_711245974" MODIFIED="1347655842369" TEXT="keep the processors fully utilised"/>
+<node CREATED="1347655907127" ID="ID_156574036" MODIFIED="1347655917556" TEXT="if the cpus have uneven load">
+<node CREATED="1347655917559" ID="ID_545904882" MODIFIED="1347655926101" TEXT="increase parallellism in your code"/>
+</node>
+<node CREATED="1347655947598" ID="ID_1481829385" MODIFIED="1347655963115" TEXT="if CPUs are even but not being used">
+<node CREATED="1347655963119" ID="ID_737757116" MODIFIED="1347655965179" TEXT="causes">
+<node CREATED="1347655966476" ID="ID_500485002" MODIFIED="1347655976429" TEXT="insufficient load">
+<node CREATED="1347655976431" ID="ID_62746973" MODIFIED="1347655987944" TEXT="low load on application"/>
+<node CREATED="1347655988462" ID="ID_1035007352" MODIFIED="1347655997874" TEXT="increase load"/>
+</node>
+<node CREATED="1347656000786" ID="ID_1616119178" MODIFIED="1347656006667" TEXT="i/o bound">
+<node CREATED="1347656006670" ID="ID_1114471911" MODIFIED="1347656016021" TEXT="run iostat or perfmon"/>
+<node CREATED="1347656023370" ID="ID_827464598" MODIFIED="1347656045500" TEXT="check bandwith limitations by monitory network traffic"/>
+</node>
+<node CREATED="1347656048788" ID="ID_1912020721" MODIFIED="1347656058288" TEXT="externally bound">
+<node CREATED="1347656058291" ID="ID_319520484" MODIFIED="1347656080379" TEXT="use a profiler to test for bottlenecks with external systems"/>
+<node CREATED="1347656080934" ID="ID_1527105943" MODIFIED="1347656093112" TEXT="database admin tools also tell if theres a bottle neck on the database"/>
+</node>
+<node CREATED="1347656108516" ID="ID_59580560" MODIFIED="1347656118321" TEXT="lock contention">
+<node CREATED="1347656118323" ID="ID_691730914" MODIFIED="1347656136708" TEXT="profiling tools can tell you which locks look hot"/>
+<node CREATED="1347656137259" ID="ID_1680998266" MODIFIED="1347656165513" TEXT="you can often get the same information by triggering random thread dumps  and looking to see which threads are contending for which locks"/>
+</node>
+</node>
+</node>
+<node CREATED="1347656180619" ID="ID_1659656151" MODIFIED="1347656190763" TEXT="if CPUs are being used">
+<node CREATED="1347656190765" ID="ID_148523093" MODIFIED="1347656242513" TEXT="perhaps profiling reveals that you could benefit from more CPU&apos;s"/>
+<node CREATED="1347656243029" ID="ID_938478315" MODIFIED="1347656279863" TEXT="one of the columns from vmstat is  the numner of threads that are runnable but are not running because a CPU is not available"/>
+<node CREATED="1347656280445" ID="ID_5762530" MODIFIED="1347656309583" TEXT="if CPU utilisation is high and theres always runnable threads waiting for a CPU you application may benefit from more processors"/>
+</node>
+</node>
+<node CREATED="1347655846152" ID="ID_681070457" MODIFIED="1347655848226" TEXT="tools">
+<node CREATED="1347655872783" ID="ID_1664461616" MODIFIED="1347655881485" TEXT="tell you how hot the processor is running"/>
+<node CREATED="1347655883251" ID="ID_24754119" MODIFIED="1347655885498" TEXT="unix">
+<node CREATED="1347655853723" ID="ID_1403549827" MODIFIED="1347655859338" TEXT="mpstat"/>
+<node CREATED="1347655848229" ID="ID_34949649" MODIFIED="1347655853442" TEXT="vmstat"/>
+<node CREATED="1347656017047" ID="ID_1898305185" MODIFIED="1347656018740" TEXT="iostat"/>
+</node>
+<node CREATED="1347655891050" ID="ID_1700267391" MODIFIED="1347655893339" TEXT="windows">
+<node CREATED="1347655893342" ID="ID_26738794" MODIFIED="1347655896910" TEXT="perfmon"/>
+</node>
+</node>
+</node>
+<node CREATED="1347656326849" ID="ID_152538798" MODIFIED="1347656335542" POSITION="right" TEXT="object pooling is bad">
+<node CREATED="1347656335544" ID="ID_999379698" MODIFIED="1347656352351" TEXT="object creation is now cheap">
+<node CREATED="1347656352874" ID="ID_1418568546" MODIFIED="1347656364422" TEXT="allocation in java is now faster than malloc in C"/>
+</node>
+<node CREATED="1347656382785" ID="ID_158552871" MODIFIED="1347656426883" TEXT="object pooling is shown to be a performance loss">
+<node CREATED="1347656428423" ID="ID_622981013" MODIFIED="1347656444969" TEXT="no coordination needed for a thread creating its own object"/>
+<node CREATED="1347656445457" ID="ID_942424043" MODIFIED="1347656451616" TEXT="pools require synchronisation"/>
+</node>
+<node CREATED="1347656488241" ID="ID_451775613" MODIFIED="1347656499692" TEXT="allocating objects is cheaper than synchronising"/>
+</node>
+<node CREATED="1347656756679" ID="ID_830322554" MODIFIED="1347656762739" POSITION="right" TEXT="reducint context switch overhead">
+<node CREATED="1347656957494" ID="ID_1249354718" MODIFIED="1347656985228" TEXT="moving the IO out of request processing thread is likely to shorten the mean service time for request processing.">
+<node CREATED="1347656986659" ID="ID_1268710679" MODIFIED="1347656994356" TEXT="e.g. threads calling log"/>
+</node>
+<node CREATED="1347656996425" ID="ID_1570471995" MODIFIED="1347657028829" TEXT="threads no longer block waiting for the output strea lock or for IO to complete">
+<node CREATED="1347657028831" ID="ID_1848903994" MODIFIED="1347657046014" TEXT="although we have increaded the contention for the message queu"/>
+<node CREATED="1347657046486" ID="ID_1579388827" MODIFIED="1347657059318" TEXT="the put pperation on the message queue is lighter than io">
+<node CREATED="1347657072466" ID="ID_1917088807" MODIFIED="1347657092983" TEXT="as long as the queue is not full"/>
+</node>
+</node>
+<node CREATED="1347657101041" ID="ID_1205463158" MODIFIED="1347657139490" TEXT="because a thread no longer blocks its less likely to be contet switched out"/>
+<node CREATED="1347657140271" ID="ID_1777274156" MODIFIED="1347657174922" TEXT="by moving ALL the IO to a single thread we also eliminate a source of blocking"/>
+</node>
 </node>
 </map>
