@@ -84,7 +84,7 @@
 </node>
 <node CREATED="1370080714134" ID="ID_1847005814" MODIFIED="1370080717838" POSITION="left" TEXT="example">
 <node CREATED="1370080720206" ID="ID_391971757" MODIFIED="1370080728052" TEXT="testing a bounded buffer"/>
-<node CREATED="1370080729707" ID="ID_512295383" MODIFIED="1370080733879" TEXT="source code"/>
+<node CREATED="1370080729707" ID="ID_512295383" LINK="../../IdeaProjects/producerconsumer/src/main/java/TestedBoundedBuffer.java" MODIFIED="1370081661420" TEXT="source code"/>
 </node>
 </node>
 </map>
