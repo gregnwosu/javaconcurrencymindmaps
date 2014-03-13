@@ -3,7 +3,7 @@ java concurrency in practise
 
 The are in the popular format freemind, 
 
-from ubuntu apt-get install freemind
+from Ubuntu apt-get install freemind
 
 I think there are windows and mac versions available online
 
@@ -11,16 +11,16 @@ I've decided that to let the world share, please feel free to distribute
 
 I've decided to distribute under the nice guy license,
 
-Please mention my name when copying or refferring or modifying the maps
+Please mention my name when copying or referring or modifying the maps
 and be nice to everyone for a whole day
 
 other than that there are no restrictions
 
 
-I've also recently added notes i made from the excellent talk java concurrency anitmated
+I've also recently added notes i made from  Victor Grazi's excellent talk java concurrency animated
 
-I cant vouch for the completeness/accuracy , but i have made notes as faithfully as i can , please feel free to update improve refactor
+I cant vouch for the completeness/accuracy , but i have made notes as faithfully as i can , please feel free to update improve re-factor
 
-also if anyone fancies converting these into the excellent emacs org mode, I love you already.
+also if anyone fancies converting these into the excellent Emacs org mode, I love you already.
 
 Greg
