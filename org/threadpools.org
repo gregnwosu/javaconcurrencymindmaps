@@ -1,0 +1,514 @@
+thread pools
+
+* execution policy
+
+** required by
+
+*** dependent tasks
+
+**** definition
+
+***** task that depend on other tasks for
+
+****** timing
+
+****** results
+
+****** side effects
+
+**** considerations
+
+***** muse create contrainsts on the execution policy
+
+***** avoid liveness problems
+
+****** thread starvation deadlock
+
+******* definition
+
+******** thread initiates a blocking unbounded wait for some resorce or condition
+
+*** tasks that exploit thread confinement
+
+**** definition
+
+***** some tasks require they a confined to one thread to work properly
+
+***** non thread safe
+
+**** considerations
+
+***** implicit coupling between the thread
+
+***** require sequential execution
+
+*** response-time-sensitive tasks
+
+**** definition
+
+***** tasks need to respond within a speciifed time frame
+
+*** tasks that use threadlocal
+
+**** definition
+
+***** threadlocal allows each thread to have its own private verson of a variable
+
+**** considerations
+
+***** standard execturo implementatins may reap idle threads
+
+***** threadlocal make sense to use in pool threads only if the thread-local value has a lifetime that is bounded by that of a taks
+
+***** Threadlocal should not be used in pool threads to communicate values between tasks.
+
+*** non uniform execution time
+
+**** considerations
+
+***** mixing lon and short-running tasks risk clogging the pool unless the pool is very large
+
+***** use 
+
+****** timed resource waits
+
+******* Thread.join
+
+******* BlockingQueue.put
+
+******* CountDownLatch.await
+
+******* Selector.select
+
+****** this guarantees that each task eventuall makes progress to either 
+
+******* success
+
+******* failed
+
+***** if a pool is full of blocked threads, it may be a sign that the pool is too small
+
+** use when 
+
+*** tasks are 
+
+**** homogonous
+
+**** independent
+
+**** uniform length
+
+** always document any requirements
+
+*** pool sizing requirements
+
+*** configuration constaints
+
+* sizing pools
+
+** method
+
+*** dont hard code
+
+*** use 
+
+**** configuration
+
+**** dynamic
+
+***** Runtime.availableProcesors()
+
+***** for CPU bound tasks
+
+****** optimum utilisation Ncpu+1 threads
+
+******* even computer intesive threads occasionally take a page fault or pause for some reason so an extra thread prevents CPU cycles going unused
+
+***** IO/blocking tasks
+
+****** estimate
+
+******* ratio of wait time to compute time
+
+******* can be rough/imprecise
+
+******** via
+
+********* profiling 
+
+********* instrumentation
+
+******* Nthreads = Ncpus * CPUUtilisation * (1 +AvgWaitTime/AvgCPUTime)
+
+******** where CPUUtilisation is between 0 and 1
+
+***** resources consuming tasks
+
+****** poolsize = resource requirement per task / number of resources
+
+**** on timeout
+
+***** mark task as failed
+
+***** abort task 
+
+***** requeue task for re-execution
+
+*** just avoid
+
+**** too big
+
+***** threads compete for scarce
+
+****** memory
+
+****** CPU
+
+***** consequence
+
+****** large memory use
+
+****** resource exhaustion
+
+**** too small
+
+***** throughput suffers
+
+***** consequence
+
+****** processors unused despite available work
+
+*** resource budget
+
+**** categorise
+
+***** how much memory
+
+***** are tasks mainly bound in 
+
+****** IO
+
+****** combination
+
+***** do they require a resource
+
+*** consider
+
+**** multliple thread pools 
+
+***** for different categories of thread pool
+
+*** classes
+
+**** ThreadPoolExecutor
+
+***** proviedes base implementation for the executors returned by
+
+****** newCachedThreadPool
+
+****** newFixedThreadPool
+
+****** newScheduledThreadExecutor
+
+***** customisable
+
+****** core size
+
+******* implementation attempts to maintain the pool at this size
+
+******* core threads are not started immediately unless you call
+
+******** prestartAllCoreThreads
+
+****** maximum pool size
+
+******* upper bound on the number of threads that can be active at once
+
+******* a thread that is active longer than the keep-alive time is a candidate for reaping
+
+******* newFixedThreadPool
+
+******** set the core and maximum to the same
+
+******* newCacheThreadPool
+
+******** sets poolsize to Integer.MAX_VALUE
+
+****** keep-alive time
+
+***** extending
+
+****** hooks
+
+******* types
+
+******** beforeExecute
+
+********* called in that executes the task
+
+******** afterExecute
+
+********* called in the thread that executes the task
+
+********* called if task complete by
+
+********** normal finish
+
+********** exception
+
+********* not called if task throws
+
+********** Error
+
+******** terminated
+
+********* called when the threadpool completes shutdown
+
+********* use
+
+********** release resources
+
+********** perform notification
+
+******* uses
+
+******** adding
+
+********* logginh
+
+********* timing
+
+********* monitoring
+
+********* gathering stats
+
+**** newCachedThreadPool
+
+***** good default
+
+***** better than fixed pool in 
+
+****** queuing performance
+
+******* comes from the ise of a synchronous q
+
+**** newFixedThreadPool
+
+***** good when you need to limit ppol size
+
+**** consideration
+
+***** bounded
+
+****** queue bounded
+
+****** pool size bounded
+
+***** use bounded queues only for independent tasks
+
+*** throttling
+
+**** considerations
+
+***** if the arrival rate for new requests exceeds the rate at which they can be handled requests are queued up
+
+***** you eventually have to throttle the arrival rate to avoid running out of memory
+
+****** even you run out of memory response time will get worse as task queue grows
+
+**** methods
+
+***** task queueing
+
+****** methods
+
+******* unbounded q
+
+******** used by
+
+********* newFixedThreadPool
+
+********* newSingleThreadExecutor
+
+******** use 
+
+********* LinkedBlockingQueue
+
+******** definition
+
+********* tasks will queue up if all worker threads are busy, but the queue can grow without bounds
+
+******** consideration
+
+********* doing away with a queue altogether and using a 
+
+********** SynchronousQueue
+
+*********** a mechanism for managing handoffs to threads
+
+*********** threadpool executor creates a new thread if no thread is waiting but the current ppol sisze is less than the maximum
+
+************ otherwise task is rejected
+
+*********** use when
+
+************ pool is unbounded; or
+
+************ rejecting excess tasks is acceptable
+
+******* synchronous q
+
+******** use with
+
+********* unbounded q
+
+********* blocking q
+
+******** used by
+
+********* newCachedThreadPool
+
+******* bounded q
+
+******** such as
+
+********* ArrayBlockingQueu
+
+********** FFO
+
+********* LinkedBlockingQueue
+
+********** FIFO
+
+********* PriorityBlockingQueue
+
+********** differnt order
+
+******** use
+
+********* requires
+
+********** saturation policiy
+
+*********** configured via
+
+************ ThreadPoolExecutor.setRejectedExecutionHandler()
+
+************* types
+
+************** AbortPolicy
+
+*************** default policy
+
+*************** throws 
+
+**************** RejectedExecutionHandlerException
+
+**************** unchecked
+
+************** CallerRunsPolicy
+
+*************** pushes the work back to the caller
+
+*************** executes the new task on the submitting thread
+
+*************** slows down the submitting thread
+
+*************** pressure backs it way up the system
+
+************** DiscardPolicy
+
+*************** silently discards task if it cant be queued
+
+************** DiscardOldestPolicy
+
+*************** discards the task that otherwise would be executed next, resubmits new task
+
+*************** this would discard the highest priorty item if used with a priority queue
+
+************ Semaphore
+
+************* can be used to bound the amount of tasks submitted to executre
+
+********** tuning together of 
+
+*********** pool size
+
+*********** queue size
+
+****** classes
+
+******* ThreadPoolExecutor
+
+******** allows you to supply a
+
+********* BlockingQueue 
+
+********** holds tasks awaiting execution
+
+* parallelizing
+
+** definition
+
+*** if we have a loop whose iterations are independs and we dont need to wait for all of them to complete 
+
+**** we can use an executor to transform a sequential loop into a parllel one
+
+**** if you want to submit a set of tasks and wait for them all to complete 
+
+***** ExecutorService.invokeAll
+
+** consideration
+
+*** CompletionService 
+
+**** to get results as they come in
+
+*** sequential loop iterations are suitable for parallization when each iteration is independent of the others and the work done in each iteration of the loop body is significant enought to offset the cost of managing a new task
+
+** recursion
+
+*** method 
+
+**** we can submit tasks that update a common datastructure held by the owning thread
+
+**** callers can use shutdown and awaitTermination calls 
+
+* thread factories
+
+** create new threads
+
+*** via
+
+**** ThreadFactory.newThread()
+
+** uses
+
+*** specify
+
+**** UncaughtExceptionHandler
+
+*** create custom thread
+
+**** e.g. logging thread
+
+**** daemon status
+
+**** priority
+
+**** named
+
+**** logging
+
+**** set custom UncaughtExceptionHandler
+
+** consider
+
+*** Executors.priviliigedTrheadFactory()
+
+**** for threads that have the same accessrights set in
+
+***** AccessControlContext
+
+***** contextClassLoader
+
