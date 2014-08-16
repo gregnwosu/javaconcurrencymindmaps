@@ -1,0 +1,846 @@
+Task Cancellation
+
+* reasons to cancel
+
+** user requested
+
+** me-limted activiteis
+
+** application events
+
+*** an application searches a problem space by decomposing it so that different tasks search different regions of the problem space, when one task finds a solution all other tasks that are still searching are cancelled
+
+** errors
+
+** shutdown
+
+*** when an application or service is shudown something must be done about work that is currently being processed
+
+* stoppng threads
+
+** application
+
+*** create
+
+**** services
+
+***** that own
+
+****** threads
+
+******* which need to be shutdown when the application terminates gracefully
+
+***** that live longer than creator
+
+***** shutdown by
+
+****** lifecycle methods
+
+******* for
+
+******** service shutdown
+
+******** owned threads shutdown
+
+******* e.g. ExecutorService
+
+******** shutdown
+
+******** shutdownNow
+
+********* limitations
+
+********** no way to find out which tasks started but did not complete
+
+********* method
+
+********** attempts to cancel tasks currently in progress
+
+********** retruns a list of tasks that were submitted but never started
+
+******* whenever a thread-owmomg service has a lifetime longer than the method that created it
+
+******* encapsulated by 
+
+******** complex programs
+
+********* stop()
+
+********** wraps
+
+*********** ExecutorService.shutdown()
+
+*********** ExecutorService.awaitTermination()
+
+****** poison pills 
+
+******* definition
+
+******** a recognisable object placed on the queue that means "when you get this stop"
+
+******* considerations
+
+******** for FIFO q's
+
+********* ensure consumers finish the work on their queue before shutting down
+
+******** producers should not submit any work after putting a poison pill on the queue
+
+******** work only when
+
+********* the number of producers and consumers is known
+
+********** extending for N producers
+
+*********** consumer only stops when it has receved N pills
+
+********** extending for N consumers
+
+*********** each producer places N consumer pills on the queue
+
+********* the queue is unbounded
+
+******* method 
+
+******** catch interupted exception
+
+********* put poison constant on the queue in 
+
+********** while loop
+
+*********** swallow any interrupted execptions
+
+*********** break out of infinite while loop if q put is successful
+
+****** one shot services
+
+******* definition
+
+******** if a mthod need to process a batch of tasks and does not return until all the tasks are finished it can encapsulate a service in the method
+
+******* method
+
+******** create the Executor sercice at the start of the mehtod
+
+******** add the all the tasks to the service
+
+******** in the finally block
+
+********* executorservice.shutdown
+
+********* executorservice.awaitTermination
+
+******* considerations
+
+******** methods of the service
+
+********* invokeAll 
+
+********* invokeAn
+
+****** simple programs may shutdown an executor service directly
+
+****** tracking executor 
+
+******* definition
+
+******** overcomes the limits of
+
+********* executor.shutdownNow
+
+******** keeps tracks of tasks in progress at shutdown time
+
+******* considerations
+
+******** tasks retain execution status on return
+
+********* which wellbehaved tasks should do anyway
+
+******** has an unavoidable race condiditon that could make it yield false positives
+
+********* completed tasks identified as cancelled
+
+********* pool can be shutdown between
+
+********** last instruction of the task
+
+********** and when the ppol records the task as complete
+
+********* not a problem if the tasks are idempotent
+
+********** otherwise the applcation should be prepareed to deal with false positives
+
+******* method
+
+******** each submitted runnable
+
+********* is wrapped in another runnable
+
+********** which run the runable in a try block
+
+********** and finally
+
+*********** checks 
+
+************ if the thread is shutdown
+
+************ and the current thread (the task thread) is interrupted
+
+*********** if so it adds the runnable to a list belonging to the service
+
+*** should not attempt to stop worker threads directly
+
+*** e.g. Logger
+
+**** LinkedBlockingQueue 
+
+***** takes from q in a loop
+
+***** exits on interrupt
+
+****** not ideal 
+
+******* thread exits abuptly
+
+******** leaves items on the queue
+
+******** blocks threads that are attempting to place items on the queue
+
+******* better to set a flag
+
+******** and drain the queue 
+
+******** which prevents new items being submitted
+
+******** though  this approach has race condiditons
+
+********* producers 
+
+********** check then act
+
+*********** race condition may mean producers put() on queue aftershutdown
+
+************ possibility of getting blocked as consumer may have stopped
+
+********* better to
+
+********** in block synchronised on the thread owner
+
+********** set isShutdown to true
+
+********** throw an exception if is shutdown
+
+*********** otherwise increment counter
+
+********** that halts if the system is shutdown and counter is >1
+
+*********** else 
+
+************ logs
+
+************ decrements the counter
+
+*** abnormal thread termination
+
+**** definition 
+
+***** premature thread death
+
+****** leading cause
+
+******* RuntimeException
+
+**** consideartions
+
+***** failure of thread in concurrent application not obvious
+
+***** one never knows what a task may throw
+
+***** the less well you know the code the more skeptical one should be
+
+***** consider catching RuntimeException when calling unknown code
+
+**** method
+
+***** worker thread notifies
+
+****** while not interrupted
+
+****** run a task
+
+****** catch execption and sotre it in a member
+
+****** finally call thread owner with exception, and this reference to 
+
+******* signify thread death
+
+***** uncaught exception handlers
+
+****** definition
+
+******* lets you detect when a thread dies due to an uncaught exception
+
+******* when a thread exits due to an uncaught exception the jvm reports this event to an application-provided UncaughtExceptionHandler 
+
+******** if no handler exists the defult is to print to the stract trace on System.er
+
+****** method
+
+******* since java 5
+
+******** Thread.setUncaughtExceptionHandler
+
+******** Thread.setDefaultUncaughtExceptionHandler
+
+******** search
+
+********* first looks for thread handler
+
+********* then threadgroup handler
+
+********* then thengroup parent handler
+
+********* finally reaching default system handler
+
+******* in long-running application , always use uncaught exception handlers for all threads that at leas log the exception
+
+******* for pooled threads
+
+******** method
+
+********* supply ThreadPoolExecutor's cpnstructor with
+
+********** ThreadPoolFactory
+
+*********** which wraps submitted tasks in another
+
+************ Runable or Callable
+
+************ that allows you to catch the runtime exceptions
+
+******** considerations
+
+********* ExecptionHanlder only handles  tasks submitted with 
+
+********** executre
+
+********* Exception handler makes Futrue.get rethrow execption when called if the task is submmited with
+
+********** submit
+
+********** wrapped in ExecutionException
+
+****** consideration
+
+******* response
+
+******** common
+
+********* print error/stack trace
+
+******** less common
+
+********* try restarteing thrad
+
+********* shutdown application
+
+********* emailing an operator
+
+** JVM Shutdown
+
+*** types
+
+**** orderly 
+
+***** definition
+
+****** last non-daemon thread terminates
+
+****** someone calls system.exit()
+
+****** platform specific
+
+******* Ctrl-C
+
+******* SIGINT
+
+***** consideration
+
+****** no guarantees as to running order
+
+****** will run application threads concurrently if they are not stopped by then
+
+******* no attempt is made to stop application threads at shutdown time
+
+****** may choose to run finalizers 
+
+******* if runFiinalizersOnExit is true
+
+****** if shutdown hooks or finalzers don complete, system hangs
+
+**** abru[t
+
+***** definition
+
+****** Runtime.halt
+
+****** killing jvm process
+
+***** considerations
+
+****** no required to do anything other than halt the jvm
+
+****** shutdown hooks dont run
+
+*** hooks
+
+**** definition
+
+***** on shutdown
+
+****** starts all registered hooks
+
+****** seperate threads
+
+****** registered with
+
+******* Runtime.addShutdownHook
+
+**** considerations
+
+***** must be 
+
+****** thread safe
+
+****** careful to avoid deadlock
+
+****** synchronised where accessing shared data
+
+****** careful not to make assumptions on the state of the code
+
+****** coded defensiviley
+
+****** coded to exit as quickly as possible
+
+****** non dependent on services that may be cleaned or closed down by other shutdown hooks
+
+******* one shutdownhook for all processes
+
+******** can also ensure things are done in the right order
+
+******** avoids race conditions with other hooks
+
+**** use
+
+***** cleanup
+
+****** services
+
+******* e.g. stop service in hook
+
+******** execption caught and swallowed
+
+****** application
+
+** Daemon Threads
+
+*** defintion
+
+**** background thread that doesnt stop the JVM from shutting down
+
+*** considerations
+
+**** all JVM internal threads are daemon threads
+
+***** except
+
+****** main thread
+
+**** all threads inherit the daemon status from the threads parent
+
+***** since most threads are created in main they inhiert nondaemon status
+
+**** when a JVM halts any remaining daemon threads are abandoned
+
+***** finally blocks not executed
+
+***** stacks not unwound
+
+***** JVM just exits
+
+**** use sparilingl
+
+***** most threads cannot be aboneded as daemons are
+
+***** NOT to be used for any IO
+
+***** best for housekeeping tasks
+
+**** not good subsittute for properly managing the lifecycle of services within an appl;ication
+
+** Finalizers
+
+*** definition
+
+**** jvm treats objects that have a finalize method specially
+
+**** file or socket handles sometimes need explicit return outside of jvm GC
+
+**** finalize called so persistant resources can be released
+
+*** considerations
+
+**** since finalizers can run in any of the JVMs threads, any application state can be accessed by multiple threads
+
+***** need synchronisation
+
+**** no guarantees when or if they run
+
+**** can impose big performance costs
+
+**** difficult to right correctly
+
+**** better to use explicit 
+
+***** close() in finally blocks
+
+***** except where you need to manage resources aquired by native methods
+
+**** avoid finalisers
+
+* cancellable
+
+** definition
+
+*** external code can move it to completion earlier than normal
+
+** types
+
+*** prememptive
+
+**** no safe way
+
+*** cooperative
+
+**** bevause
+
+***** we rearely want a task thread or service to stop immediately
+
+**** mechanisms
+
+***** flag
+
+****** characteristics
+
+******* if the thread finds that the tasks is set it terminates early
+
+******* is volatile
+
+******* is set via 
+
+******** the cancel method
+
+********* called in a finally block if used to shut down the process
+
+********* in case interrupted exception is thrown
+
+****** considerations
+
+******* the task may never check flag if the thread is engaged in a blocking call
+
+***** future
+
+****** definition
+
+******* manages the task
+
+******** lifecycle
+
+********* exceptions
+
+********* facilitatin cancellations
+
+****** method
+
+******* submit task to the 
+
+******** ExecutorService.submit()
+
+********* considerations
+
+********** on set mayInterruptIfRunning on 
+
+*********** standard Executors
+
+************ they implement a interuption policy which lets tasks be cancelled while running
+
+************ so safe to set mayInterrrupt when running if in a standard Executor
+
+******* call cancell() on the returned Future
+
+****** considerations
+
+******* do no interrupt a pool thread when trying to cancel a task
+
+******** one does not know what task is running when the thread is interrupted
+
+***** interupprion
+
+****** definition
+
+******* thread signals to another thread that it should at its convenience and if it feels like it stop what its doing and do something else
+
+****** considerations
+
+******* theres is nothing in tha API or language specification that ties interruption to any specific cancellation semantics but in practise using interuption for anything but cancellation is fragile and difficult to sustain in larger applications
+
+****** methods
+
+******* isInterupted()
+
+******** returns threads
+
+********* interrupted status
+
+********** each thread has a boolean 
+
+********** set to true when thread is interrupted
+
+******* Thread.interuppted()
+
+******** definition
+
+********* clears the interrupted status
+
+********* returns its previous value
+
+******** considerations
+
+********* if called and returns true you should 
+
+********** throw InterruptedException
+
+********** or restore interruptedstatus
+
+****** exceotions
+
+******* InteruptedException
+
+******** definition
+
+********* to indicate early completion due to an interrupt by a 
+
+********** blocking operation
+
+*********** e.g.
+
+************ Thread.sleep()
+
+************ Object.wait()
+
+************ join()
+
+*********** considerations
+
+************ jvm makes no guarantees how quickly the operation will notice
+
+************ in practise it happens quite quickly
+
+************ may ignore the request as long as the status remains so that calling code can query
+
+******** method
+
+********* thread.interrupt()
+
+********** consideations 
+
+*********** doesnt necessarally stop the target thread from working, it merely delivers the message that interruption is requested
+
+******** considerations
+
+********* usually the most sensible way to implement cancellation
+
+****** requires
+
+******* interruption policy
+
+******** definition
+
+********* determines how a thread interprets an interruption request
+
+********* what it should do when it recieves an interruption request
+
+********* how quickly thread reacts to interruption
+
+******** considerations
+
+********* tasks should preserve interupt status for code that has thread
+
+********** ownership 
+
+*********** definition
+
+************ code that creates threads owns threads
+
+*********** considerations
+
+************ distinguish interpreation of interruption between 
+
+************* threads
+
+************** borrowed by task
+
+************** owned by thread pool
+
+************* task 
+
+************** doesn own thread
+
+********* owning code may wish to act on interrupted status
+
+********* this is why most blocking library calls simply thorw interrupted exeption in response to an interrupt
+
+********** they will never execute in threads that they own
+
+********** so most sensible just to get out of the way and communicate the interrupt
+
+********* a task should not assume anythng about the interupion policy of its executing thread unless it has explcitly documented in an interruption policy
+
+********* if a task doesnt throw InterruptedException in response to an interrupt it should restore the interrupted exception
+
+********** Thread,currentThread().interrupt()
+
+********* never swallow an interruption exception unless implementing that threads interruption policy in owning code
+
+********* timed interruptions/timeouts
+
+********** never schedule an interupt from a calling thread
+
+*********** doesnt know called threads interruption polciy
+
+*********** thread may return before interrupt goes off and interrupt another thread
+
+*********** also if the trask is not responsive to interruption may still wait for a long time
+
+********** instead
+
+*********** perform a timed join and after join returns
+
+*********** schedule a the worker thread to run with a timeout
+
+*********** save and rethrow exception if an exception was thrown in task
+
+************ saved throwable is made volatile
+
+************* for safe publication
+
+********** or instead 
+
+*********** submit the task to an executor and return a future
+
+*********** issue a time future.get()
+
+*********** if get it terminated with a TimeoutException cancel the future
+
+************ this occurs in the finally clause
+
+************ when Future get throws IntteruptedException or timeoutEception you know the result in no longer needed
+
+************* we can rethrow the cause of ExecutionException
+
+************* cancel in the finally clause will ensure the future is still thrown
+
+************** if the future is completed calling cancel does no harm
+
+***** non-interruptable blocking
+
+****** definition
+
+******* we cab sometimes concice threads blocked in noninterruptible activieties to sop via means similar to interruption
+
+****** mechanisms
+
+******* Synchronous socket in java.io
+
+******** blocking read and write notsensitve to blocking in
+
+********* InputStream
+
+********* OutputStream
+
+******** but closing underlying socket makes any blocked threads throw
+
+********* SocketException
+
+******* Synchronous io in java.nio
+
+******** interrupting a thread waiting on an InterruptibleChannel 
+
+********* throws
+
+********** ClosedByInterruptExecption
+
+******** closing a channel causes threads blocked on channel to throw
+
+********* AsynchrnousCloseException
+
+******* Asynchronous IO with Selector
+
+******** if thread is blocked in Selector.select (in java.nio.channels)
+
+********* call close() or wakeup()
+
+********** causes thread to return early
+
+******* Lock Aquisition
+
+******** if thread is blocked waiting for a lock
+
+********* nothing you can do short of ensuringthat the lock is eventually aquired
+
+********* explicit lock classes offer the lockInterruptibly method
+
+********** which allows you to aquire a lock while remaining sensitive to intterrupts
+
+** requires
+
+*** cancellatin poliicy
+
+**** definition 
+
+***** specifies
+
+****** how
+
+******* how code can request cancellation
+
+****** when
+
+******* the task checks whether cancellation has been requested
+
+****** what
+
+******* actions the task takes in response to a cacnellation request
+
+**** considerations
+
+***** tasks should not make assumptions about the interruption poilicies 
+
+***** cancellation code should not interrupt threads it doesnt own
+
+***** activities that do not support cancellation
+
+****** should call blocking calls in a loop
+
+****** when intteruption is detected
+
+******* should retry 
+
+******* but preserve the interrupted status and restore it just before returning
+
+******** dont have to use interuption status to preserve interruption status
+
+******** can use flags /other variables to presever state
+
+********* be sure to synchronise adequately
+
