@@ -1,0 +1,752 @@
+Designing 
+
+* process
+
+** identify
+
+*** state variables
+
+**** definition
+
+***** the variable that the object
+
+****** owns
+
+******* full ownership
+
+******** definition
+
+********* gets to decide the locking protocol
+
+******** encapsulated objects
+
+******* shared ownership
+
+******** defiinition
+
+********* published objects
+
+******* split ownership
+
+*** preconditions
+
+**** defintion
+
+***** identify as invalild or invalid
+
+****** state variables before transition
+
+**** considerations
+
+***** we can wait for these to become valid
+
+****** using wait /notify
+
+****** but other classes preferable
+
+******* BlockingQueue
+
+******* Semaphore
+
+*** postconditions
+
+**** definition
+
+***** identify as invalild or invalid
+
+****** state variables after transitions
+
+*** invariants
+
+**** definition
+
+***** identify as valid or invalid 
+
+****** state variables
+
+** establish a policy for managing concurrent access
+
+*** techniques
+
+**** encapsulation
+
+***** definition
+
+****** encapsulating data within an object confines acces to the data to the objects methods making it easier to ensure that the data is always accessed with the appropriate lock held.
+
+***** promotes
+
+****** instance confinement
+
+******* definition
+
+******** an object is encapsulated in another object such that all code paths that have to the encapsulated object are knonwn and appropriately made thread safe
+
+******* considerations
+
+******** one of the easiest ways to build thread safe classes
+
+******** allows flexibility in the choice of locking strategy
+
+******** makes it easier to bukld thread safe classes because a class that confines tis state can be analyzed for thread saftey without having to examine the whole program
+
+**** patterns
+
+***** java monitor pattern
+
+****** defintion 
+
+******* wrap access via a member lock ("monitor")
+
+****** use when
+
+******* building  classes from scratch
+
+******* composing classes out of objects that are not threadsafe
+
+***** delegation of thread safety
+
+****** definition 
+
+******* delegating thread saftey concerns to a thread safe object
+
+****** considerations
+
+******* do we need more thread safety if all memeber variables are threadsafe?
+
+******** depends on the synchronisation policy
+
+******* when delegation fails
+
+******** when an invariant relates to two or more threadsafe components
+
+********* the operation must be made atomic
+
+********* it is not safe to really on components individual thread saftey
+
+******** If a classes is composed of multiple INDEPENDENT thread safe state variables and has no operations that have any invalid state transitions, then it ca delegate thread safety to underlying state variables
+
+******* publishing delegation components
+
+******** when can it be done
+
+********* when the modifications dont not violate and compound invariants
+
+********* however; usually not a good idea since it constrains future development
+
+********* if :
+
+********** a state variable is thread safe
+
+********** does not participate in any invariants
+
+********** has no prohibited state transitiions for any of its operations
+
+**** adding functionality to exisiting classes
+
+***** considerations
+
+****** best to modify source code
+
+******* entire synchronisation policy is in one place
+
+****** extend classes
+
+******* more fragile, superclass could chang synchronisation policy
+
+*******  by inheritance often results in 
+
+******** client side locking
+
+********* sublassing and using class level synchronisation Syncronises on the wrong lock!
+
+********** instead monitor on the wrapper collection (such as syncronisedList)
+
+********* definition
+
+********** extending functionality of a component with a monitor that tries to synchronise with the locks of the component class
+
+******* instead use
+
+******** extenstion by composition
+
+********* extend all methods of component and proxy its operation
+
+********* can use a instrinic lock
+
+********* extra lock and thus performance bpenalty
+
+**** reusing existing classes
+
+** documentation
+
+*** document
+
+****  a classes thread safety guanrantess for its clients
+
+**** document its synchronisation policy for its maintainers
+
+**** document each use of 
+
+***** syncrhonized
+
+***** volatile
+
+***** or any thread safe class
+
+** select building blocks
+
+*** synchronized collections
+
+**** definition
+
+***** Vector
+
+***** Hashtable
+
+**** considerations 
+
+***** support client side locking
+
+***** do not support compound actions
+
+****** use client side locking monitoring on the collection
+
+***** iteration of methods 
+
+****** only checks that the size doesnt change
+
+****** check is without synchronization
+
+******* may only see stale values
+
+******* performance design tradeoff
+
+****** preventing concurrent modification
+
+*******  hold lock
+
+******** possbility of deadlock
+
+******** slow
+
+********* increased the chance of lock contention
+
+******** need to use locking everywhere a collection is iterated
+
+******** considerations
+
+********* hidden iterations
+
+********** e.g. toString() on a Set
+
+********** hashcode 
+
+********** equals
+
+********** containsAll
+
+********** removeAll
+
+********** retainAll
+
+******* cloning collection
+
+******** slow
+
+***** serialise access to the collection classes
+
+****** poor concurrency
+
+******* when multiple thread contend low throughput
+
+*** concurrent collections
+
+**** definition
+
+***** good concurrency
+
+***** iterators do not through concurrentmodifcation exception
+
+****** weakly consistent
+
+******* defintiion 
+
+******** tolerate modification
+
+******** traverses elements as they were contstructed
+
+******** may reflect modification
+
+********* not guaranteed
+
+******* tradeoffs
+
+******** not guranteed to be correct
+
+********* size()
+
+********* isEmpty()
+
+******** guaranteed 
+
+********* get
+
+********* put
+
+********* containsKey
+
+********* remove
+
+**** classes
+
+***** concurrentMap
+
+****** supports
+
+******* put-if-absent
+
+******* remove-if-equal
+
+******* replace-if-equal
+
+******* conditional remove
+
+****** example
+
+******* concurrent hashmap
+
+****** uses
+
+******* lockstriping 
+
+****** considerations
+
+******* is so good you should nearly always prefere to synchronised may
+
+******* only prefere synchronised map where
+
+******** you need to lock map for exclusive access
+
+***** CopyOnWriteArrayList
+
+****** supports 
+
+******* better concurrency
+
+******* publishes new copy of collection each time its modified
+
+****** considerations
+
+******* as long as you publish immutable objects
+
+******** no  further synchronization is required
+
+****** use when 
+
+******* iteration is more common than modification
+
+******** like most event notification systems
+
+********* adding listener less common than iterating listeners
+
+***** Queue
+
+****** eamples
+
+******* Concurrent LinkedQueue
+
+******* PriorityQueue
+
+****** considerations
+
+******* do not block
+
+******* like list but without
+
+******** random access requirements
+
+******** improves concurrency
+
+***** Blocking Queue
+
+****** useful in producer consumer desing
+
+******* advantages
+
+******** producers and consumers execute concurrently
+
+******** requirement decomposition
+
+******** seperating concerns helps exploit parallelism
+
+******** facilitates serial-thread-confinement
+
+********* passing ownership safely from one thread to another
+
+********* object pools do this via 'lending'
+
+****** provide
+
+******* blocking calls
+
+******** put
+
+******** take
+
+******* timed
+
+******** offer
+
+******** poll
+
+****** considerations
+
+******* bounded queues
+
+******** mean producers block when the queue is full
+
+********* consumers get a chance to catch up
+
+******** allows flexible overload policies
+
+********* shedding load
+
+********* serialiszing excess items
+
+********** to disk
+
+********* reducing number of producer threads
+
+********* otherwise throttling producers
+
+******** bounded quewues are a powerful resource management tool for building reliable applications, they make your program more robust to overload by throttling activities that threaten to produce more work than can be handlerd
+
+****** implementations
+
+******* FIFO Queues
+
+******** LinkedBlkingQueu
+
+******** ArrayBlockingQueue
+
+******* PriorittyBlockingQueue
+
+******** process in priority order
+
+******* SynchronousQueue
+
+******** defiinition
+
+********* actually stores a queue of threads waiting to process elements
+
+******** considerations
+
+********* reduces latency as the items are handed direct to threads
+
+********** we dont ever actual add and remove work to a queue before processing
+
+********** adding to a queue IS processing
+
+********* direct handoff also lets gives the producer more information
+
+********** once its added to the queue the producer knows its processing
+
+********** not just waiting to be processed
+
+******* Deque
+
+******** pronounced "deck"
+
+******** definition
+
+********* double ended queue that allows efficient insertion and deletion from the head and tail of the queue
+
+******** implementations
+
+********* Deque 
+
+********* BlockingDeque
+
+******** considerations
+
+********* work stealing 
+
+********** every consumer has its own deque
+
+********** if a consumer exhausts the work in its own deque it can steal from  the tail of anothers queue
+
+********** reduces contention
+
+********* work sharing 
+
+********** when a worker finds a new unit of work places it at the end of another workers deque
+
+***** ConcurrentSkipList map
+
+****** concurrent version of TreeMap
+
+***** ConcurrentSkipListSet
+
+****** concurrent version of treeset
+
+*** synchronisers
+
+**** latches
+
+***** definition
+
+****** delays progress of threads until latch reaches a terminal state
+
+****** acts as a gate
+
+****** cannot change state back to closed once opened
+
+***** implementations
+
+****** CountDownLatch
+
+******* initialised with the number of events to watif for
+
+******* methods
+
+******** countDown
+
+********* when an event to decrement the latch happens
+
+********* await
+
+********** when a thread reaches the latch
+
+****** Future Task
+
+******* defintion 
+
+******** blocks until 
+
+********* completed
+
+********** types of completeion
+
+*********** completion
+
+*********** cancelation
+
+*********** exception
+
+******** the latch waits for the result of a computation
+
+********* implemented as a 
+
+********** Callable
+
+*********** states
+
+************ waiting to run
+
+************ running
+
+************ completed
+
+*********** can throw 
+
+************ exceptions
+
+************* which are wrapped by 
+
+************** Future
+
+************** into
+
+*************** ExcecutionException
+
+**************** containing the cause as
+
+***************** Throwable
+
+**************** considerations
+
+***************** handle using
+
+****************** LaunderThrowable
+
+****************** Listing 5.13 from conccurency in practise
+
+******* considerations
+
+******** part of the Executor framework
+
+******** publishes its computation results safely
+
+**** semaphores
+
+***** types
+
+****** counting semaphore
+
+******* definition
+
+******** a semaphore manages a set of virtualpermits, the initial number o permits is passed to a constuctor; activities can aquire permits as long as some remain;
+
+********  if no permit is available aquire blocks until
+
+********* a permit is avialable
+
+********* the aquire times out
+
+********* the aquiring thread is interrupted
+
+******** the release method returns a permit to the semaphore
+
+****** binary semaphore
+
+******* definition
+
+******** a semaphore with an initial count of 1
+
+******** used as
+
+********* mutex
+
+********* nonreentrant
+
+***** uses
+
+****** turning a collection into a blocking bounded collection
+
+****** implementing a pool that blocks when no more resource is left
+
+**** barriers
+
+***** definition
+
+****** barriers a similar to latches in that they bock a group of threads until some event has occurred
+
+****** the key difference is that all the threads must come to the barrier at the same time
+
+****** barriers dont wait for events, they wait for threads
+
+***** types
+
+****** CyclicBarrier
+
+******* definition
+
+******** allows a fixed number of parties to rendevous repeatedly at a barrier point
+
+******* use when
+
+******** implementing parallel iterative algorithim that breaksdown into independent subproblems
+
+******* constuction
+
+******** option to construct with a 
+
+********* Runnable
+
+********** which runs when barrier is passed and before all threads are released
+
+****** Exchanger
+
+******* definition 
+
+******** a two party barrier where parties exchange data at the barier point
+
+******* use when
+
+******** the two parties perform assumentic activties
+
+********* e.g. one party writing to a buffer and another party reading from a buffer
+
+******* considerations
+
+******** when two parties exchange, the data is published safely to each new party
+
+***** await()
+
+****** threads call await() when they reach the barrier point
+
+****** blocks until all threads reach the barrier point
+
+****** if a barrier is syuccessfully passed await returns a unique arrival index for each thread
+
+******* can be used to elect aleader for some specal action
+
+***** broken barriers
+
+****** if 
+
+******* a call to await() times out or;
+
+******* await(0 is interruppted
+
+****** then
+
+******* the barrier is considered broken
+
+******* all oustanding await calls terminate with 
+
+******** BrokenBarrierExecption
+
+***** use when
+
+****** used in simulations where all steps must complete before advancing
+
+******* neural nets
+
+******* cellula automata
+
+******** conways game of lufe
+
+* thread states
+
+** blocked states
+
+*** types
+
+**** BLOCKED
+
+**** WAITING
+
+**** TIMED_WAITING
+
+*** definition
+
+**** thread is waiting for an event beyond its control
+
+** RUNNABLE
+
+* Interrupted Exception
+
+** definition
+
+*** a sign inside a blocking operation of a thread that another thread has requested interruption
+
+** usually used for cancelation of an activity
+
+** responding to an interruptedexception
+
+*** choices
+
+**** Propogate the Interrrupted Exception
+
+***** usually the most sensible
+
+***** 
+
+**** Restor the interupt
+
+***** sometimes cannot throw interrupted exception
+
+****** catch the exception
+
+****** restore interrupted status
+
+******* call interrupt on the current thread
+
+*** NEVER ignore
+
+**** as evidence of intteruption is lost
+
+**** only exception is when you extend thread and control calls further up the stack
+

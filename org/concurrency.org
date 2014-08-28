@@ -1,0 +1,330 @@
+concurrency
+
+* thread saftey
+
+** sharing objects safely
+
+*** definition
+
+**** 
+
+*** thread confinement
+
+**** definition
+
+***** a thread confied object is owned exclusively by and confined to one thread and can be modified by its owning thread
+
+**** techniques
+
+***** java swing uses the invoke later class to schedule a runnable for exectuion on the event thread
+
+***** connection pools marshal the distribution of non thread safe objects to exclusviely one thread at time
+
+**** types
+
+***** ad hoc thread confinement
+
+****** definition
+
+******* responsibility for the thread confinement falls entirely on the implementation
+
+****** fragile because
+
+******* non of the help from 
+
+******** language features
+
+********* visibility modifiers
+
+********* local variables
+
+***** volatile variable 
+
+****** a write is like entering a synchronised block
+
+******* therefore only safe if no more than one thread wirtes at the same time 
+
+******** otherwise what is written to memory is nonsense
+
+***** stack confinement
+
+****** definition
+
+******* objects that can only be reached via local variables
+
+******* this includes shared primitives since there is no way to obtain a reference to a shared primitive
+
+***** thread local
+
+****** override 'initialValue'
+
+****** use when 
+
+******* frequently used operation requires a temporary objectand wants to avoid reallocating it
+
+**** considerations
+
+***** the decision to use thread confinement often comes when you are using a single threaded subsystem
+
+***** the awarenesss that a confined object is not threadsafe often only existst in the head of the developer , future maintainers may allow it to escape
+
+*** Immutability
+
+**** definition
+
+***** an immutable object is one whose state cannot be changed after construction
+
+***** an object is immuatble if
+
+****** its state cannot be modified after construction
+
+****** it is properly constructed 
+
+******* i.e. the thsi reference does not escape during construction
+
+**** final fields
+
+***** initialisation safety
+
+****** immutable objects be freely accessed and shared without synchronisation
+
+****** as long as properly constructed
+
+***** documents  thats fields are not expected to change
+
+**** considerations
+
+***** holders
+
+****** whenenever  a group of related data itmes must be acted on atomically consider creating an immutable holder class for them 
+
+**** effectively immutable objects
+
+***** definition
+
+****** obects that are not technically immutable but whose state will not be modified after publication
+
+***** Safely published effectively immutable objects ccan be used safely by any thread without  additional synchronisation
+
+****** n.b. must be safely published first!
+
+*** guarded
+
+**** definition
+
+***** a guarded object can be accessed only with a specific lock held. Guarded objects inlcude those that are encapsulated within other thread-safe objects and published objects that are knowon to be guarded by a specific lock
+
+**** reentrancy
+
+***** locks aquired on a per thread basis
+
+***** each lock assoicated with 
+
+****** aquisition count 
+
+****** owning thread
+
+**** guarding variables
+
+***** 
+
+**** guarding invariants
+
+***** for every invariant that involves more than one variable , all the variables involved in that invariant must be guarded by the same lock
+
+**** avoid holding locks duting lengthy computations
+
+**** atomicity
+
+***** definition
+
+****** 
+
+****** An atomic operation is one that is atomic with respects to all operations , including itself , that operate on the same state.
+
+***** considerations
+
+****** compound variables
+
+******* to preserve state consistency, update related state variables in a single atomic operation
+
+*** shared thread safe
+
+**** definition
+
+***** a thread-safe object performs synchronisation interenally , so mutlible thrads can freely access it through its public interface without further synchronisation
+
+** concerns
+
+*** visibility
+
+**** there is no guarantee that reading thread will see a value written by another thread on a timely basis
+
+**** in order to ensure visibility of memory you must use synchronisation
+
+**** out of thin air safety
+
+***** when a thread reads a variable without synchronisation 
+
+****** it may see stale data
+
+****** BUT the data will data that was actually placed on the thread at some time
+
+****** EXCEPT 64 bit numeric values , the jvm is permitted to tread a 64 bit read or write as two separate 32 bit operations
+
+******* double and long
+
+****** it is not safe to use shared mutable long and double variables in multithreaded programs unless declared volatile or guarded by a lock
+
+**** guaranteeing visibility
+
+***** locking
+
+****** ensure that all threads see the most up to date values of shared mutlable variable, the reading and writing threads must syncronise on a common lock
+
+***** volatile
+
+****** when a field is declared volatile the compiler  and runtime are put on notice that this variable is shared and operations on it should not be reordered with other memory operations
+
+****** volatile variables  are not cached in registers or in cache where they are hidden from other processors 
+
+****** When a thread  A writes to a volatile variable and subsequently thread B readds that same variable, the values of ALL variabvles that wer visble to A pripr ro writeing to the volatile variable  become visible to B after reading the volatile variable
+
+******* writing a volatile variable is like exiting a synchronized block and reading a volatile variable is like entering a synchronized block
+
+****** Caution
+
+******* use volatile variable s only when 
+
+******** they simply implementing and verification of you synchronisation policy
+
+******* avoid using volatiles when
+
+******** verifying corrects would require subtle reasoning about visibility
+
+******** 
+
+******* compared  with locking
+
+******** only guarantees visibility not also  atomicity like locking
+
+****** Good Use
+
+******* ensuring visibility of a 
+
+******** threads own state
+
+******** an object referred to
+
+******** indicating an important lifecycle event
+
+********* init/shutdown
+
+******* USE WHEN
+
+******** Writes to the variable do not depend on its current value, or you can ensure that only a single thread ever updates the value
+
+******** the variable does not participate in  invariants with other state variables
+
+******** locking is not required for any other reason while the variable is being accessed
+
+*** publication
+
+**** defiinition
+
+***** making a variable available to code outside its current scope
+
+***** construction
+
+****** do not allow the this reference to escape during construction
+
+******* an object is in a predictable consistent state after the constructor returns
+
+******** this is true even if the publication is the last statement in the constructor
+
+**** improper publication
+
+***** defiition
+
+****** when synchronisation is not used to make an object visible to other threads!
+
+***** possible to have an object with incosistent fields
+
+****** the object constructor first writes default values to all fields before subclass constructors run
+
+**** safe publication
+
+***** definition
+
+****** Initialising and object from a static initialiser
+
+****** storing a reference to an object in
+
+******* volatile field
+
+******* atomic reference
+
+******* final field of a properly constructed object
+
+******* field that is properly guarded by a lock
+
+***** considerations
+
+****** thread safe collections 
+
+******* guarantees
+
+******** placing in an object  in a threadsafe collection 
+
+********* such as 
+
+********** Vector 
+
+********** Hashtable
+
+********** synchronizedMap
+
+********** ConcurrentMap
+
+********** synchronizedList
+
+********** synchronizedSet
+
+********** CopyOnWriteArraySet
+
+********** CopyOnWriteArrayList
+
+********** BlockingQueue
+
+********** ConcurrentLinkedQueue
+
+******** safely publishes it to any thread that retrieves from that collection
+
+****** static initialiser
+
+******* is oftern the easiest and safest way to publish objects that can be statically constructed
+
+******** executed at class initilisation time
+
+****** mutablility
+
+******* immutable objects 
+
+******** can be published via any mechanism
+
+******** effectively immutable objects 
+
+********* must be safely published
+
+******** mutable objects
+
+********* must be safely published 
+
+********* thread safe or;
+
+********* guarded by a lock
+
+****** documentation
+
+******* when you publish an object how it can be accessed
+

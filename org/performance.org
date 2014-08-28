@@ -1,0 +1,698 @@
+Performance and Scalability
+
+* improved 
+
+** performance
+
+*** via
+
+**** resource utilisation
+
+***** by
+
+****** letting applications more easiliy exploit avalable processing capacity
+
+**** responsiveness
+
+***** by
+
+****** letting application begin processing new tasks immediiately while existing tasks are still running
+
+* considerations
+
+** improvements often counter procudctive
+
+*** first make your program right, then improve it
+
+* mearsurment
+
+** via
+
+*** how fast
+
+**** service time
+
+**** effciency
+
+***** when tuning for performance the goal is usually to do the same work with less effort
+
+****** reusing previously computed results
+
+**** latency
+
+*** hpw much
+
+**** scalability
+
+***** scalability descirbes the ability to improve throughput or capacity when additional computing resources (such as additional CPU's , memory, storage or IO bandwidth) are added
+
+***** trying to find ways to parallelize the problem 
+
+***** doing more work with more resources
+
+**** capacity
+
+**** throughput
+
+** considerations
+
+*** how fast vs how much
+
+**** often at odds with each other
+
+**** man y of the tricks that improve performce in single threaded applications are bad for scalability
+
+* definition
+
+** doing more work with fewer 
+
+*** resources
+
+**** often bound by
+
+***** CPU cycles
+
+***** memory
+
+***** network bandwith
+
+***** IO bandwidth
+
+***** database requests 
+
+***** disk space
+
+** keeping the CPUs as busy as possible with useful work
+
+*** if the program is compute bound
+
+****  then we may have to add more CPU's
+
+**** improve algorithims
+
+*** we keep cpus hotter by decoming the application so there is always work to be done
+
+* evaluating tradeoffs
+
+** information
+
+*** is often not enought to make the right design tradeoffs
+
+*** most optimisations are premature
+
+**** often underetaken before a clear set of requirements are avialable
+
+**** avoid premature optimisations ,first make it right, then make it fast - if it is not already fast enough
+
+*** the quest for performance is probably the single greatest source for concurrency bugs
+
+**** the belief that synchronisation is too slow led to many clever looking but dangerous idions
+
+***** see double checked locking
+
+** readability
+
+*** many performance optimisations come at the cost of 
+
+**** maintainability
+
+***** the more nonobvious the code is the harder it is to understand and maintain
+
+***** greater risk of error
+
+****** subtler nuances in algorithims
+
+**** object oriented design principles
+
+***** e.g.
+
+****** breaking encapsulation
+
+** considerations
+
+*** if youcant spot the costs risk and tradeoff , you probably havent thought throug it carefully enough to proceed
+
+*** key questions
+
+**** what do you mean by more performant?
+
+**** under what conditions will thi apporach acgtually be faster?
+
+***** light or heavy load
+
+***** large or small data sets
+
+***** can you support your answer with measurements?
+
+**** is the code likely to be used in situations wheere the conditions may be different?
+
+**** what are the hidden costs in trading for this improved performance
+
+***** e/g/ costs
+
+****** more development
+
+****** more maintenance risk
+
+*** concrete requirements
+
+**** intuation of many developers about where a performance problem lies or which approach will be faster or more scalable is often incorrect
+
+**** when you trade safety for performance 
+
+***** you get neither
+
+**** any performance tuining exxercise be accoimpanied by 
+
+***** concrete performance requirements
+
+****** tell you when and when not to tune
+
+***** measuring program in place
+
+****** using
+
+******* realistic configuration
+
+******* realistic load profile
+
+****** that measures before and after tuning
+
+***** measure, dont guess!
+
+* Amdahls law
+
+** description of
+
+*** how much a program can theoretically be sped up by additional computing resources based on the proortion of parallezible and serializble components
+
+*** as N approaches infitinity the maximum speedup converges to 1/F
+
+**** e.g. that a program whith 50% of the processing must be exexuted serially can be sped up by a factor of 2
+
+**** a program in which 10% must be serially executed can be sped up by a factor of 10
+
+**** regardless of how many processors are available
+
+*** also shows the effciency of processors
+
+**** e.g
+
+***** a 10 processor system with 10% serialisation can achieve at most 5.3(at 53% utilisation) and with 100 processors it can achieve at most a speedup of 9.2 (at 9% utlisation)
+
+** equation
+
+*** Speedup <= 1 / ( F + (1 -F)/N)
+
+*** where F is the fraction ofthe calculation that must be executed serially
+
+*** where N is the number of processors
+
+** also consider
+
+*** even for a highly parallel application where N threads fetch work from a shared q independently
+
+**** the work queue is shared by all worker threads and will require some synchronisation
+
+**** if locking is used to guard the state of the queue then while one thread is dequeing a task othere threads that need to dequeu their next task must wait -- and this is where task processing is serialised
+
+**** the processing time of a single tasks incliudes
+
+***** time to execute the Runnable
+
+***** time to dequeue class from shared work queue
+
+***** LinkedBlockingQueue will block less
+
+***** result handling
+
+****** may be source of serialisation if shared
+
+****** e.g.
+
+******* placing in a data structure
+
+******* writing to a log file
+
+*** thinking "in the limit" for the maximum number of processors
+
+**** can offer insights to where scaling limits might appear
+
+* thread costs
+
+** are only worthwhile 
+
+*** when the performance benefits outweigh the costs
+
+** examples
+
+*** context switching
+
+**** is
+
+***** when the os preempts and switches out a thread to allow another to run
+
+**** requires
+
+***** saving the execution context of the current thread
+
+***** restoring the execution context of the newly scheduled thread
+
+**** costs
+
+***** the newly loaded execution context is unlikely to be in the processor cache
+
+****** hence a flurry of cache misses on initial load
+
+****** thread run a little more slowly
+
+****** threads are given a minimum time quantum to amortise the cost of the context switch
+
+***** is equivalent
+
+****** 5,000 to 10,000 clock cycles
+
+***** profiling
+
+****** vmstat
+
+******* reports
+
+******** number of context switches
+
+******** percentage of time spent in the kernel
+
+********* high kernel usuage often indicates
+
+********** heavy scheduling activity
+
+*********** which may be caused by
+
+************ blocking
+
+************* due to
+
+************** IO
+
+************** lock contention
+
+*** memory synchronisation
+
+**** costs 
+
+***** come from
+
+****** visibility guarantees
+
+******* offered by
+
+******** synchronised
+
+********* types
+
+********** contended
+
+*********** costs
+
+********** uncontended
+
+*********** costs
+
+************ 20 -250 clock cycles
+
+************ rarely significant
+
+********* optimised for uncontended 
+
+********* jvm optimisations
+
+********** of 
+
+*********** optimising away lock aquisition
+
+************ if the lock can be proven never to contend
+
+*********** escape analysis
+
+************ identify when a local object is never published to the heap and is therefore thread local
+
+*********** lock coarsining
+
+************ is 
+
+************* the merging of ajacent synchronised blocks using the same lock
+
+************* this
+
+************** reduces overhead
+
+************** gives the compiler less locks to work with
+
+*************** thus 
+
+**************** enables other optimisations
+
+********* considerations
+
+********** dont worry about the cost of uncontended synchronisation. the mechanism is already fast and jvms can perform additional optimasations that furhter eliminate cost.
+
+********** focus optimisation on areas where lock contention occurs.
+
+********* general costs
+
+********** creates traffic on the 
+
+*********** shared memory bus
+
+************ which 
+
+************* has limited bandwith
+
+************* which is shared by all processors
+
+************* affects other threads if they are all competing for bandwith
+
+******** volatile
+
+********* uncontended
+
+******* implemented via
+
+******** memory barries
+
+********* that
+
+********** flush 
+
+*********** caches
+
+*********** hardware write buffers
+
+********** stall 
+
+*********** execution pipelines
+
+********** invalidate
+
+*********** caches
+
+********* inhibit 
+
+********** compiler optimisations
+
+*********** as
+
+************ operations cannt be reordered
+
+*** blocking
+
+**** when a thread blocks 
+
+***** the jvm 
+
+****** suspends the thread
+
+****** allows it to be switched out by OS
+
+**** uncontended synchronisation
+
+***** can be handled entirely within the jvm
+
+**** if a thread blocks frequently
+
+***** it will be unable to use its full scheduling quantum
+
+***** it incures more context switches than one that is CPU bount
+
+****** this increases
+
+******* scheduling overhead
+
+****** this reduces 
+
+******* throughput
+
+**** jvm implementations 
+
+***** spin waiting
+
+****** is
+
+******* repeatldy trying to aquire the lock until it succesds
+
+******* perferable for short waits
+
+***** suspending the thread via operating system
+
+****** is 
+
+******* preferable
+
+******** for long waits
+
+******* most often used
+
+**** costs
+
+***** suspending a thread because it could not get a lock or a conditional wait entails
+
+****** two additional context switches
+
+******* switched out before quantum expires
+
+******* switched back ina gain
+
+****** plus all attended OS activiity
+
+****** plus all extra cache loading and miss activiity
+
+* reducing lock contention
+
+** 
+
+** lock contention
+
+*** causes
+
+**** scalability
+
+***** the principal thread to scalability in concurrent applications is the exclusive resource lock
+
+**** performance
+
+*** influences
+
+**** factors
+
+***** how often lock is requested
+
+***** how long the lock is held
+
+**** if the product of the factors is small
+
+***** most attempts to aquire are uncontended
+
+***** otherwise 
+
+****** threads will block waiting for it
+
+****** processors may even sit edle while there is plenty of work to do
+
+*** soluction
+
+**** replace exclusive locks with co-ordination mechanisms
+
+***** such as
+
+****** concurrent collections
+
+****** read-write locks
+
+******* enforces a multiple-reader single-writer 
+
+****** immutable objects
+
+******* best for readonly structures
+
+****** atomic variables
+
+******* reduce the cost of hot fields
+
+******* best if
+
+******** your class has a small number of hot fields that do not participate in invariants with other variables
+
+****** changing your algorithim to have fewer hot fields
+
+**** reduce
+
+***** the duration that locks are held
+
+****** move
+
+******* code that doesnt require locks out of synchornized blocks
+
+******** esp 
+
+********* expensive operatiosn
+
+********* potential blocking operations such as IO
+
+******** considerations
+
+********* a synchronised block can be too small
+
+********** operations that need to be atomic must be contained in a single synchronised block
+
+********** because the cost of synchronising is non zero
+
+*********** breaking one synchronised blocks into many eventually becomes counter productive
+
+*********** denormalising should only be considered once you have normalised fully and performance is still below par
+
+****** delegate thread safety
+
+******* via
+
+******** a thread safe object
+
+******* advantages
+
+******** eliminates need for 
+
+********* explicit synchronisation
+
+******** reduces lock scope to the duration of the thread safe object
+
+******** reduces ris that a future maintainer will undermine thread safety
+
+********* by forgetiing to aquire the appropriate lock
+
+***** frequency locks are requested
+
+***** lock granularity
+
+****** lock splitting
+
+******* if a lock guards more than one independent state
+
+******** you may be able to improve scalability by splitting it into multiple locks that guard different variables
+
+******** this results in each lock being requested less often
+
+******* improves scalability when
+
+******** lock has moderate but not heavy contention
+
+****** lock striping
+
+******* is an extension of lock splitting
+
+******* used on a set of independent objects 
+
+******* for example 
+
+******** concurrenthashmap uses an array of 16 locks each of which guards 1/16 of the hashbuckets
+
+******* have disadvantages of
+
+******** locking the whole set of objects exclusivly is more difficult and expensive than with a single lock
+
+***** interaction with 'hot' fields
+
+****** common operations such as caching frequently computed values can introduce hot fields that limit scalability
+
+* monitoring CPU utilisation
+
+** goal
+
+*** keep the processors fully utilised
+
+*** if the cpus have uneven load
+
+**** increase parallellism in your code
+
+*** if CPUs are even but not being used
+
+**** causes
+
+***** insufficient load
+
+****** low load on application
+
+****** increase load
+
+***** i/o bound
+
+****** run iostat or perfmon
+
+****** check bandwith limitations by monitory network traffic
+
+***** externally bound
+
+****** use a profiler to test for bottlenecks with external systems
+
+****** database admin tools also tell if theres a bottle neck on the database
+
+***** lock contention
+
+****** profiling tools can tell you which locks look hot
+
+****** you can often get the same information by triggering random thread dumps  and looking to see which threads are contending for which locks
+
+*** if CPUs are being used
+
+**** perhaps profiling reveals that you could benefit from more CPU's
+
+**** one of the columns from vmstat is  the numner of threads that are runnable but are not running because a CPU is not available
+
+**** if CPU utilisation is high and theres always runnable threads waiting for a CPU you application may benefit from more processors
+
+** tools
+
+*** tell you how hot the processor is running
+
+*** unix
+
+**** mpstat
+
+**** vmstat
+
+**** iostat
+
+*** windows
+
+**** perfmon
+
+* object pooling is bad
+
+** object creation is now cheap
+
+*** allocation in java is now faster than malloc in C
+
+** object pooling is shown to be a performance loss
+
+*** no coordination needed for a thread creating its own object
+
+*** pools require synchronisation
+
+** allocating objects is cheaper than synchronising
+
+* reducint context switch overhead
+
+** moving the IO out of request processing thread is likely to shorten the mean service time for request processing.
+
+*** e.g. threads calling log
+
+** threads no longer block waiting for the output strea lock or for IO to complete
+
+*** although we have increaded the contention for the message queu
+
+*** the put pperation on the message queue is lighter than io
+
+**** as long as the queue is not full
+
+** because a thread no longer blocks its less likely to be contet switched out
+
+** by moving ALL the IO to a single thread we also eliminate a source of blocking
+

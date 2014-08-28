@@ -1,0 +1,112 @@
+testing concurrent programs
+
+* comparision to sequential programs
+
+** differences to sequential programs
+
+*** non determinism
+
+*** more potential interactions
+
+*** rarer occurence of failure
+
+**** more extensivily tested
+
+**** run for longer
+
+** similarities
+
+*** correctness
+
+*** performance
+
+* qualities
+
+** liveness
+
+*** problems 
+
+**** test code can introduce 
+
+***** artifacts
+
+****** types
+
+******* timing 
+
+******* synchronisation
+
+****** conseq..
+
+******* mask bugs that might otherwise show
+
+*** "something good eventually happens"
+
+** safety
+
+*** "nothing bad ever happens"
+
+**** test conforms to its specification
+
+**** testing 
+
+***** invariants
+
+*** problems 
+
+**** likely have many race conditions while testing invariants
+
+*** solution
+
+**** implementing 
+
+***** some 'snapshot' feature via 
+
+****** locking
+
+***** test points
+
+****** assertions within code to test correctness at all times
+
+** correctness
+
+*** identify things that can be checked
+
+**** types
+
+***** invariants
+
+***** post conditions
+
+**** found via
+
+***** specification
+
+***** discovery
+
+** performance
+
+*** throughput
+
+**** the rate at which a set of concurrent tasks is completed
+
+*** responsiveness/latency
+
+**** the delay between a request for and completion of some action
+
+*** scalability
+
+**** imporvement in throughput as more 
+
+***** resources
+
+****** cpu's
+
+****** threads
+
+* example
+
+** testing a bounded buffer
+
+** source code
+

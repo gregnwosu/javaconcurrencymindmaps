@@ -1,0 +1,422 @@
+liveness
+
+* tradeoff
+
+** liveness
+
+*** decresases by more 
+
+**** safety
+
+***** ensured by
+
+****** locking
+
+******* incorrect ordering can cause
+
+******** deadlock
+
+****** bounding 
+
+******* resource consumption
+
+******** incorrect bounding 
+
+********* resource deadlock
+
+* deadlock
+
+** definition
+
+*** threads as nodes on a drected graph whose edges represent the relation:
+
+**** "Thread A is waiting for a resources held by Thread B"
+
+**** If the graph is cyclical, there is deadlock
+
+** considerations
+
+*** when a set of threads deadlock, they can no longer be used
+
+** types 
+
+*** left-right
+
+**** definition
+
+***** occurs when two threads attempt to aquire the same locks in a different order
+
+**** solution
+
+***** gurantee that ever thread that needs locks L and M at the same time aquires them in the same order
+
+*** dynamic lock ordering
+
+**** definition
+
+***** when the locks are parametised so although the locking code has a consitent order , switching the order of the parameters can cause deadlock
+
+**** solution
+
+***** look for nested lock aquisitions
+
+***** we must induce ordering
+
+****** by hashcode
+
+******* we get the default hashcode for the objects and lock depending on which one is less
+
+******* this will always be consistent between lock monitors
+
+******* in the case where the hashcodes are equal we have a tie break where there is another lock to aquire first before aquiring the two locks in any order
+
+******** if hash collisionare frequent this may become a concurrency bottleneck
+
+****** by some unique ordinal
+
+******* objec
+
+*** deadlocks between cooperating objects
+
+**** definition
+
+***** one objects synchronized method calls another objects synchronised method
+
+***** there is an implicit lock ordering
+
+***** depending on the call heirarchy
+
+****** different locks may be ordered
+
+**** solution 
+
+***** the warning sign is that while holding the lock the code calls an 
+
+****** alien method
+
+******* definition
+
+******** a method whose behaviour is not fullu specified in the containing class
+
+******** this includes methods in other classes as well as overrridable methods that are neither pricate nor final
+
+******** passing an object to an alien method must be considered as publishing that object
+
+********* since you dont know what code will be called in that method
+
+********* you dont kno that the alien method wont publish the object or retain a reference to it that may be used later by another thread
+
+***** only call alien methods via
+
+****** open calls
+
+******* definition 
+
+******** a call to another method with no locks held
+
+******** analgous to using encapsulation to provide thread saftey
+
+********* makes analysis easier
+
+******* consideration
+
+******** classes that rely on open calls are more
+
+********* well behaved
+
+********* conposable
+
+***** after analysis shows we can shrink the synchronized blocks to only guard operations that access shared state
+
+**** considerations
+
+***** invoking an alien method with a lock held is askinf for liveness trouble
+
+***** the alien mehtond might acquire other locks or block for a long time , stalling other threads that need the lock you hold
+
+***** strive to use open calls through your program, Programs that rely on open calls are far easier toanalyse for deadlock-freedom than those that allow calls to alien mehtids with locks held.
+
+***** restructiring a synchronixed block to allow open calls can have sideeffects, 
+
+****** operations that were atomic are no longer atomiic
+
+****** htis should be acceptable
+
+***** when we cannot abide by the sideeffecs
+
+****** we may need to strucutre a concurrent object so that only one thread can execute the code path following an open call
+
+******* e.g.
+
+******** when shutting down a service
+
+********* first: wait for in-progress operations to complete
+
+********* then release resources used by the service
+
+********* so hold the lock long enough to update the service state to "shutting down"
+
+********** so that other threads see this state
+
+*********** including the thread that is shutting down the service
+
+********** relies on the construction of a protocol so that other threads do not try to start if the state is " shutting down "
+
+*** resource deadlock
+
+**** definition
+
+***** threads can deadlock waiting on resources as well as lockks
+
+***** also includes thread starvation deadlock
+
+****** definition
+
+******* e.g. 
+
+******** where a tasks that submits a task and waits for its result executes in a single-threaded Executor.
+
+******** in which case it will wait forever
+
+******* tasks that wiat for other tasks are the primary source for thread starvation deadlock
+
+******* bounded bools and interdependent tasks do not mix well
+
+**** considerations
+
+***** a program  that never aquires more than one lock at a time cannot experiience lock ordering deadlock
+
+***** if you aquire multiple locks , the lock ordering must be part of your design
+
+***** document the lock ordering protocol
+
+***** minimise lock interactions
+
+**** audit
+
+***** audit your code for deadlock freedom 
+
+****** first identify where multiple locks could be acquired 
+
+******* try to make this a small set
+
+****** second: perform a global analysis of all such instances to ensure that lock ordering is consistent across your entire program
+
+***** techniques
+
+****** code review
+
+****** byte code or source code  static analysis programs
+
+****** use open calls to make this easier
+
+****** explict Lock classes
+
+******* tryLock 
+
+******** definition
+
+********* lets you specify a timeout after which tryLock returns a failure
+
+******** considerations
+
+********* by using a timeout longer than you expect to take you can regain control if there is a problem aquiring the lock
+
+********* when a timed lock fails you dont always know why
+
+********* this works only when two locks are aquired together in the same method
+
+********** if multiple locks are aquired due to nesting of method calls you cannot just release the outer lock
+
+********** even if you know you hold it
+
+******** solution 
+
+********* when a lock aquisition times out
+
+********** release the locks
+
+********** back off and wait a while
+
+********** try again
+
+****** deadlock analysis 
+
+******* via
+
+******** thread dumps
+
+********* definition
+
+********** includes
+
+***********  a stack trace for each running thread
+
+*********** locking information 
+
+************ such as
+
+************* which locks are held by each thread
+
+************* in which stack frame they were acquired
+
+************* which lock a blocked thread is waiting to acquire
+
+*********** deadlock information
+
+************ when generating a thread lock the jvm traverses the lock waiting graph looking for deadlock
+
+************ if it finds one it provides 
+
+************* which threads are involved
+
+************* which locks are involved
+
+************* where in the program the aquistions take place
+
+********* trigger via
+
+********** SIGQUIT (kill -3)
+
+********** Ctrl + \ in unix
+
+********** Ctrl + break in windows
+
+********* considerations 
+
+********** explicit lock classes
+
+*********** java 5 has no support for lock information from thread dump explicit locks do not show up
+
+*********** java 6 does include thread dump support and deadlock detection with explicit locks
+
+************ the information on where the locks are aquired is less precise
+
+*********** intrinsic locks are assoicated with the stack frame in which they were aquired
+
+*********** explicit locks are associated only with the aquiring thread
+
+*** stavation
+
+**** definition
+
+***** when a thread is permanently denide acces to resources it needs in order to make progress
+
+***** the most commonly starved resource is CPU cycles
+
+**** can be caused by
+
+*****  in appropriate use of thread priorities
+
+****** thread priorites
+
+******* api
+
+******** merely contains sheduling hnts
+
+********* may do nothing 
+
+********* or may cause always cause one thread to be scheduled before another
+
+********** starvation
+
+********* generally wise to avoid tweaking scheduling priorites
+
+********** as it makes the behaviour of your application platform specific
+
+******** has 10 levels that the jvm can map to operating system scheduling priorities
+
+********* platform specific
+
+********* some OS's have fewer than 10 levels 
+
+********** hence some api levels map to the sameOS levels
+
+******** generally most threads have Thread,NORM_PRIORITY
+
+********* this is usually adequate
+
+******** you can often spot a program that is trying to fix priority tweaking 
+
+********* it contains
+
+********** Thread,yield
+
+********** Thread.sleep
+
+***** executing non terminating code while holding locks
+
+****** inifintate loops
+
+****** infinite waits
+
+*** poor responsiveness
+
+**** causes
+
+***** CPU intensive background task can still suffer from poor responsiveness if they have to compete for cpu cycles with the event thread
+
+****** this is one case where altering priorities makes sense
+
+******* when cpu intensive background tasks effects responsiveness
+
+***** poor lock management
+
+****** if a thread hold a lock for a long time or longer than necessary while working
+
+****** other threads that need that lock may need to wait a long time
+
+*** Livelock
+
+**** is
+
+***** a form of liveness failure in which a thread while not blocked cannot make progress because it keeps retrying an operation that will always fail
+
+**** causes
+
+***** transactional message applications
+
+****** overeager recovery code that treats and unrecoverable error as a recovverable one
+
+******* e.g.
+
+******** where a framework rolls back a message and puts it to the end of a queue
+
+********* if there is a bug for a particular type of message ,this will cause the message to continually be placed at the head of the queue and cause starve other messages from being processed
+
+********* this is called the poisone message problem
+
+****** multiple co-operating threads
+
+******* where they change state in response to each other in a way such that they can never make progress
+
+******** e.g. 
+
+********* like two people that bump into each other in a corridor, and then both move to the left to avoid each other
+
+**** solution
+
+***** multple co-operating thread problem
+
+****** introduce some randomness into the retry mechanism
+
+****** retrying with random waits and backoffs
+
+******* the ethernet protocol includes an exponential backup after repeated collisions
+
+** tools
+
+*** avoiding lock ordering deadlock starts at desing time
+
+**** ensure that when threads aquire multiple locks they do so in a consistent order
+
+**** this is best ensured by using open calls throughout your program
+
+***** which
+
+****** greatly reduces the number of places where  multiple locks are held at once
+
+****** makes it more obvious where those places are
+
+****** 
+

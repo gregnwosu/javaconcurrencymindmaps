@@ -1,0 +1,340 @@
+Task Execution
+
+* perfornance measures
+
+** throughput
+
+** responsiveness/latency
+
+*** offload work processes from the main thread
+
+*** tasks can be processed in parallel enabling thethe main loop to resume more quickly
+
+** graceful degradation
+
+** effective use of cpu
+
+** considerations
+
+*** the real performance payoff occures in dividing a programs workload when large amounts of HOMOGENOUS tasks can be processed concurrently
+
+*** consider CompetionService
+
+* unbounded thread creation 
+
+** disadvantages
+
+*** thread lifecycle overhead
+
+**** thread creation and teardown are not free
+
+**** if requests are frequent and lightweight creating a new thread for each request can consume significant resources
+
+*** resource consumtion
+
+**** when you have more threads than processors threads sit idle
+
+***** idle threads
+
+******  consume  resources, 
+
+******* memory
+
+******** puts pressure on GC
+
+******* CPU
+
+******** mpre threads than processors can hurt
+
+*** stability
+
+**** limit on the amount of threads
+
+***** results in OutOfMemoryError
+
+***** limited by 
+
+****** address space for thread 
+
+******* stack
+
+******** typcal syze 0.5Mb
+
+********* can change using -Xss switch
+
+******** dividing by 2^32 (for 32 machines) gives a limit of 1-2k threads
+
+****** OS limiotation
+
+******* may be stricter than address limitations
+
+* pooled trhead creation 
+
+** executor
+
+*** defiiniton
+
+**** procieds a standard means of decoupling 
+
+***** task submoission
+
+***** task execution
+
+*** specifies
+
+**** in whcih thread tasks 
+
+***** in which trad
+
+***** what order
+
+****** FIFO
+
+****** LIFO
+
+****** Priority
+
+***** how many concurrent tasks
+
+***** how many tasks may be queued pending execution
+
+***** rejection plicy
+
+***** pre task execution tasks
+
+*** types
+
+**** newFixedThreadPool
+
+***** up to fixed maximum size
+
+***** keeps size constants once reached
+
+**** newCachedThreadPool
+
+***** grows and shrinks thread ppool
+
+***** unbounded
+
+**** newSingleThreadExecutor
+
+***** creates a task
+
+****** queue-
+
+******* order can be 
+
+******** FIFO
+
+******** LIFO
+
+******** Priority
+
+**** newScheduledThreadPool
+
+***** similar to 
+
+****** Timer
+
+******* problems
+
+******** only a single thread for all tasks
+
+********* all tasks compete for thread
+
+********* have to wait for other threads before they can run
+
+********* behave badly if unchecked exception is thrown
+
+********** terminates the thead
+
+********** doesnt resurect the thread
+
+********** new tasks cant be scheduled
+
+********** scheduled tasks dont run
+
+***** fixed size
+
+***** timing
+
+****** scheduled or;
+
+****** periodic
+
+**** executes
+
+***** Tasks
+
+****** types
+
+******* Runnable
+
+******* Callable
+
+******** can wrap
+
+********* Runnable
+
+********* java.security.priviligedAction
+
+****** lifecycle
+
+******* states
+
+******** created
+
+******** submitted
+
+******** completed
+
+******** started
+
+******* represented by
+
+******** Future
+
+********* get()
+
+********** blocks
+
+*********** if not complete 
+
+********** returns immediately
+
+*********** If task completed 
+
+********** throws exception 
+
+*********** exception
+
+************ if task threw exeception
+
+************ wraps in Execution Exception
+
+********** time limits
+
+*********** can add timeout to get
+
+*********** throws TimeoutException
+
+************ can add a default value or error message as the result from future on timeout
+
+********* created via
+
+********** ExecutorService
+
+*********** submit()
+
+************ constitutes 
+
+************* safe publication or the Task from the submitting thread to the trhead that will finally executre the taskj
+
+*********** invokeAll()
+
+************ submit mutiple tasks to service
+
+************ returns when
+
+************* all tasks completed
+
+************* calling thread is interrupted
+
+************* timeout expires
+
+************** any tasks not complete when timeout expires are cancelled
+
+************* can call isCancelled to find out if a task completed or was cancelled
+
+********** FutureTask constructore
+
+********** override newTaskFor in executorService
+
+*********** to control the instantiation of the Future corresponding to submitted Callable or Runnable
+
+******* consideration
+
+******** can only move forward
+
+*** lifecycle
+
+**** states
+
+***** running
+
+***** shutting down 
+
+***** terminated
+
+**** addressedBy
+
+***** ExecutionService
+
+****** methods
+
+******* isShutdown
+
+******* isTerminated
+
+******* awaitTermination
+
+****** tasks submitted after shutdown
+
+******* handled by rejetion execution handler
+
+****** implenetation 
+
+******* CompletionService
+
+******** definition
+
+********* retrieve executions as they become avaialble
+
+********* packaged as Futures
+
+********* on submission, tasks are wrapped in 
+
+********** QueuingFuture
+
+*********** definition
+
+************ subclass of FutureTask
+
+************ on done() adds to queue
+
+******** good for parallezing homogenous tasks
+
+******** acts for a handle for a batch of processes
+
+********* like future handles a single process
+
+** advanteages
+
+*** increase stability
+
+*** graceful degradation
+
+*** tuning
+
+*** management
+
+*** monitoring
+
+*** logging
+
+*** error reporting
+
+* finding exploitable paralleism
+
+* 2
+
+** identify task boundaryes
+
+*** independent activities that:dont depend on each others 
+
+**** results
+
+**** state
+
+**** side effects
+
